@@ -12,7 +12,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class GameStateService {
-  private readonly storageKey = 'ai-academy-adventure-v4';
+  private readonly storageKey = 'ai-academy-adventure-v5';
 
   readonly branches = BRANCHES;
   readonly skills = SKILLS;
@@ -21,7 +21,7 @@ export class GameStateService {
   readonly careers = CAREERS;
 
   readonly view = signal<GameView>('intro');
-  readonly acquiredSkills = signal<readonly string[]>(['prompt']);
+  readonly acquiredSkills = signal<readonly string[]>([]);
   readonly completedRegions = signal<readonly string[]>(['prompt-academy']);
   readonly choices = signal<Readonly<Record<string, number>>>({});
   readonly activeRegionId = signal<string | null>(null);
@@ -266,7 +266,7 @@ export class GameStateService {
     )
       return;
     this.view.set('intro');
-    this.acquiredSkills.set(['prompt']);
+    this.acquiredSkills.set([]);
     this.completedRegions.set(['prompt-academy']);
     this.choices.set({});
     this.activeRegionId.set(null);
@@ -295,7 +295,7 @@ export class GameStateService {
     let nextId = fixedNext[region.id];
     if (region.id === 'ml-forest') {
       const chosenIndex = this.choices()[region.id] ?? this.selectedOption() ?? 0;
-      nextId = ['vision-observatory', 'medical-observatory', 'language-library'][chosenIndex];
+      nextId = ['vision-observatory', 'language-library', 'medical-observatory'][chosenIndex];
     }
     return this.regions.find((candidate) => candidate.id === nextId) ?? null;
   }
@@ -362,7 +362,7 @@ export class GameStateService {
       const validRegions = new Set(this.regions.map((region) => region.id));
       if (Array.isArray(state.acquiredSkills))
         this.acquiredSkills.set([
-          ...new Set(['prompt', ...state.acquiredSkills.filter((id) => validSkills.has(id))]),
+          ...new Set(state.acquiredSkills.filter((id) => validSkills.has(id))),
         ]);
       if (Array.isArray(state.completedRegions))
         this.completedRegions.set([

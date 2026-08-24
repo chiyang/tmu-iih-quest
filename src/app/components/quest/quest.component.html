@@ -54,35 +54,54 @@
 
       @if (game.questPhase() === 'choice') {
         <div class="choice-scene">
-          <header>
-            <p class="panel-kicker">YOUR DECISION・選擇你的解法</p>
-            <h1>{{ region.question }}</h1>
-            <p>每個答案都能推進故事；差別在你優先解決哪個具體問題。</p>
-          </header>
-          <div class="choice-grid">
-            @for (option of region.options; track option.label; let index = $index) {
-              <button class="quest-choice" type="button" (click)="game.chooseQuestOption(index)">
-                <span class="choice-letter">{{ choiceLetters[index] }}</span
-                ><i>{{ option.icon }}</i
-                ><small>{{ option.archetype }}</small
-                ><strong>{{ option.label }}</strong>
-                <p>{{ option.detail }}</p>
-                <div class="reward-preview" [class.is-hidden]="!game.previewRewards()">
-                  <span>✦</span>
-                  @if (game.previewRewards()) {
-                    <em>
-                      @for (skillId of option.rewards; track skillId; let last = $last) {
-                        {{ game.skillById(skillId)?.name }}{{ last ? '' : ' ＋ ' }}
-                      }
-                    </em>
-                  } @else {
-                    <em>選擇後揭曉技能</em>
+          @if (region.dialogue[region.dialogue.length - 1]; as questGiver) {
+            <div class="choice-continuity-layout">
+              <div class="speaker-portrait choice-speaker-portrait">
+                <img [src]="questGiver.portrait" [alt]="questGiver.speaker" />
+                <span>{{ questGiver.speaker }}</span>
+              </div>
+              <section class="choice-dialogue-stack">
+                <article class="dialogue-box choice-dialogue-box">
+                  <div class="dialogue-context">
+                    <span class="scene-chip">YOUR DECISION・回應角色</span>
+                    <span>所有選擇都能推進故事</span>
+                  </div>
+                  <p class="speaker-name">{{ questGiver.speaker }}</p>
+                  <small class="speaker-role">{{ questGiver.role }}</small>
+                  <p class="quest-question">{{ region.question }}</p>
+                  <p class="choice-guidance">不需要先知道正確答案，選擇你最想了解的方向。</p>
+                </article>
+                <div class="choice-grid">
+                  @for (option of region.options; track option.label; let index = $index) {
+                    <button
+                      class="quest-choice"
+                      type="button"
+                      (click)="game.chooseQuestOption(index)"
+                    >
+                      <span class="choice-letter">{{ choiceLetters[index] }}</span
+                      ><i>{{ option.icon }}</i
+                      ><small>{{ option.archetype }}</small
+                      ><strong>{{ option.label }}</strong>
+                      <p>{{ option.detail }}</p>
+                      <div class="reward-preview" [class.is-hidden]="!game.previewRewards()">
+                        <span>✦</span>
+                        @if (game.previewRewards()) {
+                          <em>
+                            @for (skillId of option.rewards; track skillId; let last = $last) {
+                              {{ game.skillById(skillId)?.name }}{{ last ? '' : ' ＋ ' }}
+                            }
+                          </em>
+                        } @else {
+                          <em>選擇後揭曉技能</em>
+                        }
+                      </div>
+                      <b>採取這個行動 <span>➜</span></b>
+                    </button>
                   }
                 </div>
-                <b>採取這個行動 <span>➜</span></b>
-              </button>
-            }
-          </div>
+              </section>
+            </div>
+          }
         </div>
       }
 

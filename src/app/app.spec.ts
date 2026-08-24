@@ -35,13 +35,16 @@ describe('App', () => {
     expect(fixture.nativeElement.querySelector('app-intro')).toBeTruthy();
   });
 
-  it('should introduce concrete no-wrong-answer quests and creative classes', async () => {
+  it('should introduce broad health AI paths and creative classes', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const page = fixture.nativeElement as HTMLElement;
 
     expect(page.querySelector('h1')?.textContent).toContain('哪一種 AI 冒險者');
-    expect(page.textContent).toContain('312 份回饋');
+    expect(page.textContent).toContain('智慧長照');
+    expect(page.textContent).toContain('護理紀錄');
+    expect(page.textContent).toContain('精準醫療');
+    expect(page.textContent).toContain('腦波');
     expect(page.textContent).toContain('沒有錯誤答案');
     expect(page.textContent).toContain('語言咒術師');
     expect(page.textContent).toContain('視覺獵人');
@@ -59,7 +62,14 @@ describe('App', () => {
     expect(page.querySelector('.speaker-portrait img')?.getAttribute('src')).toContain(
       'mira-engineer.png',
     );
-    expect(page.textContent).toContain('新生說明會今天 17:00');
+    expect(page.textContent).toContain('AI 不只會聊天或判讀影像');
+  });
+
+  it('should begin without granting Prompt or any other skill', () => {
+    const game = TestBed.inject(GameStateService);
+
+    expect(game.acquiredSkills()).toEqual([]);
+    expect(game.skillById('prompt')).toBeTruthy();
   });
 
   it('should show three valid approaches and four post-quest destinations', async () => {
@@ -69,14 +79,20 @@ describe('App', () => {
 
     const choices = page.querySelectorAll<HTMLButtonElement>('.quest-choice');
     expect(choices).toHaveLength(3);
+    expect(page.querySelector('.choice-speaker-portrait img')?.getAttribute('src')).toContain(
+      'mira-engineer.png',
+    );
+    expect(page.querySelector('.choice-dialogue-box')?.textContent).toContain(
+      '你最想先讓它協助哪一類工作',
+    );
     expect(page.querySelector('.reward-preview')?.textContent).toContain('選擇後揭曉技能');
 
     choices[0].click();
     fixture.detectChanges();
 
-    expect(page.querySelector('.result-scene')?.textContent).toContain('Python');
-    expect(page.querySelector('.result-scene')?.textContent).toContain('流程自動化');
-    expect(page.querySelector('.direct-next')?.textContent).toContain('水晶資料典藏室');
+    expect(page.querySelector('.result-scene')?.textContent).toContain('Prompt 基礎');
+    expect(page.querySelector('.result-scene')?.textContent).toContain('衛教轉譯');
+    expect(page.querySelector('.direct-next')?.textContent).toContain('健康資料萬象庫');
     expect(page.querySelector('.map-return-button')).toBeTruthy();
     expect(page.querySelector('.undo-button')).toBeTruthy();
     expect(page.querySelector('.rebirth-button')).toBeTruthy();
@@ -92,11 +108,11 @@ describe('App', () => {
     click(fixture, '.direct-next');
 
     expect(page.querySelector('.world-board')).toBeFalsy();
-    expect(page.querySelector('.quest-topline')?.textContent).toContain('水晶資料典藏室');
+    expect(page.querySelector('.quest-topline')?.textContent).toContain('健康資料萬象庫');
     expect(page.querySelector('.speaker-portrait img')?.getAttribute('src')).toContain(
       'iris-archivist.png',
     );
-    expect(page.textContent).toContain('486 筆健康篩檢紀錄');
+    expect(page.textContent).toContain('病歷與護理紀錄是文字和表格');
   });
 
   it('should undo only the latest completed round', async () => {
@@ -124,7 +140,7 @@ describe('App', () => {
     click(fixture, '.academy-hero .primary-cta');
     click(fixture, '.skip-dialogue');
 
-    expect(page.querySelector('.reward-preview')?.textContent).toContain('Python');
+    expect(page.querySelector('.reward-preview')?.textContent).toContain('Prompt 基礎');
     expect(page.querySelector('.reward-preview')?.textContent).not.toContain('選擇後揭曉技能');
   });
 
@@ -136,8 +152,8 @@ describe('App', () => {
     const page = fixture.nativeElement as HTMLElement;
 
     expect(page.querySelector('app-world-map')).toBeTruthy();
-    expect(page.querySelector('.region-node.is-open')?.textContent).toContain('符文程式工坊');
-    expect(page.textContent).toContain('機器學習森林');
+    expect(page.querySelector('.region-node.is-open')?.textContent).toContain('智慧照護迎新站');
+    expect(page.textContent).toContain('智慧醫療方法森林');
   });
 
   it('should route each machine-learning choice to a matching specialization', () => {
@@ -145,7 +161,7 @@ describe('App', () => {
     const forest = game.regions.find((region) => region.id === 'ml-forest');
     expect(forest).toBeTruthy();
 
-    const destinations = ['魔眼觀測台', '星脈醫療觀測站', '萬語秘典城'];
+    const destinations = ['生命訊號觀測台', '照護語言秘典城', '分子星脈研究站'];
     destinations.forEach((destination, index) => {
       game.choices.set({ 'ml-forest': index });
       expect(game.nextRegionFor(forest!)?.name).toBe(destination);

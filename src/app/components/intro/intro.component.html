@@ -3,8 +3,8 @@
     <p class="chapter-label"><span>NEW ADVENTURE</span> AI 能力探索 RPG</p>
     <h1>你的選擇，會把你變成<br /><em>哪一種 AI 冒險者？</em></h1>
     <p class="hero-lead">
-      跟著角色走進一連串具體委託：兩小時內整理 312 份回饋、修復 486
-      筆異常紀錄，再培育真正能預測的模型。這裡沒有錯誤答案，每一種行動都會長出不同技能。
+      給還沒有方向的你：從衛教、護理紀錄與智慧長照出發，再走進醫學影像、生理訊號、生成式 AI
+      與精準醫療。這裡沒有錯誤答案，每一種選擇都會帶你認識不同的健康 AI 能力。
     </p>
     <div class="hero-rule">
       <span aria-hidden="true">◇</span>
@@ -19,7 +19,7 @@
         }}<span aria-hidden="true">➜</span>
       </button>
       <button class="secondary-cta" type="button" (click)="game.openCollection()">
-        查看起始技能卡
+        查看技能卡冊
       </button>
     </div>
     <div class="hero-facts" aria-label="冒險特色">
@@ -35,11 +35,13 @@
     </div>
     <div class="guide-message">
       <small>引導員 Lumi</small>
-      <p>「這次不只在地圖上看地名。我會帶你真正走進工坊、典藏室與森林，見到每一位委託人。」</p>
+      <p>「你不需要先會寫程式。從一個想幫助的人開始，我們會一起看見智慧醫療的不同道路。」</p>
     </div>
-    <div class="guide-card-preview" aria-label="起始技能卡">
-      <img src="assets/skills/artificial-intelligence.jpg" alt="人工智慧技能卡" />
-      <div><small>STARTING SKILL</small><strong>Prompt 基礎</strong><span>已裝備</span></div>
+    <div class="guide-card-preview is-unclaimed" aria-label="尚未取得起始技能">
+      <i aria-hidden="true">?</i>
+      <div>
+        <small>YOUR FIRST SKILL</small><strong>由第一個選擇決定</strong><span>尚未裝備</span>
+      </div>
     </div>
   </aside>
 </section>
@@ -48,20 +50,20 @@
   <div class="section-intro">
     <p class="chapter-label"><span>LINEAR STORY</span> 星引學院任務線</p>
     <h2>故事向前走，選擇讓能力分化。</h2>
-    <p>前三關建立共同基礎；你在機器學習森林做出的決定，會直接帶往對應的專精角色與職業道路。</p>
+    <p>前三關先認識照護情境、健康資料與 AI 方法；之後再依興趣走向影像訊號、醫療語言或精準醫療。</p>
   </div>
   <div class="loop-scroll">
     <article>
       <b>01</b><i>{{ '{ }' }}</i
-      ><strong>符文程式工坊</strong><small>312 份回饋、兩小時期限</small>
+      ><strong>智慧照護迎新站</strong><small>衛教、護理紀錄與智慧長照</small>
     </article>
     <span aria-hidden="true">➜</span>
     <article>
-      <b>02</b><i>▥</i><strong>資料典藏室</strong><small>486 筆紀錄、14% 缺漏</small>
+      <b>02</b><i>▥</i><strong>健康資料萬象庫</strong><small>病歷、影像、訊號與分子資料</small>
     </article>
     <span aria-hidden="true">➜</span>
     <article>
-      <b>03</b><i>♢</i><strong>機器學習森林</strong><small>82% 準確率背後的陷阱</small>
+      <b>03</b><i>♢</i><strong>智慧醫療方法森林</strong><small>辨識、預測、生成與研究</small>
     </article>
     <span aria-hidden="true">➜</span>
     <article>
@@ -70,6 +72,40 @@
     <span aria-hidden="true">➜</span>
     <article>
       <b>05</b><i>★</i><strong>職業覺醒</strong><small>連結真實職涯與研究方向</small>
+    </article>
+  </div>
+</section>
+
+<section class="health-ai-compass">
+  <div class="section-intro">
+    <p class="chapter-label"><span>HEALTH AI COMPASS</span> 智慧醫療面向</p>
+    <h2>AI 不只做診斷，它會出現在整段健康旅程。</h2>
+    <p>每個面向需要不同資料與專業；隱私、公平、驗證和人工覆核則貫穿所有道路。</p>
+  </div>
+  <div class="compass-grid">
+    <article>
+      <i>⌂</i><strong>預防、長照與遠距監測</strong>
+      <p>穿戴裝置、居家感測、慢性病管理與照顧者支持。</p>
+    </article>
+    <article>
+      <i>✧</i><strong>衛教、溝通與照護紀錄</strong>
+      <p>健康知識問答、個人化說明、護理摘要與交班支援。</p>
+    </article>
+    <article>
+      <i>◉</i><strong>診斷與臨床決策支援</strong>
+      <p>MRI、X 光、病理影像，以及腦波、心電圖與生命徵象分析。</p>
+    </article>
+    <article>
+      <i>✣</i><strong>精準醫療與分子研究</strong>
+      <p>基因體、轉錄體、蛋白體、代謝體整合與生物標記探索。</p>
+    </article>
+    <article>
+      <i>⌘</i><strong>醫院流程與公共衛生</strong>
+      <p>分流、床位與人力安排、疾病監測、研究和藥物開發。</p>
+    </article>
+    <article>
+      <i>⬡</i><strong>安全、倫理與資料治理</strong>
+      <p>隱私、同意、公平性、可解釋性、資安與人類最終責任。</p>
     </article>
   </div>
 </section>
@@ -83,15 +119,15 @@
   <div class="teaser-cards">
     <article class="teaser-card vision">
       <span>◉</span><small>VISION PATH</small><strong>視覺獵人</strong>
-      <p>追蹤影像中的細微線索，打造能看懂世界的魔眼。</p>
+      <p>探索醫學影像、腦波與心電訊號中的生命線索。</p>
     </article>
     <article class="teaser-card language">
       <span>✧</span><small>LANGUAGE PATH</small><strong>語言咒術師</strong>
-      <p>把知識、工具與語言模型編織成可靠的智慧咒式。</p>
+      <p>把可信知識、照護文字與語言模型編織成可靠咒式。</p>
     </article>
     <article class="teaser-card model">
       <span>✦</span><small>MODEL PATH</small><strong>魔型工程師</strong>
-      <p>從資料中培育模型，理解預測力量與能力邊界。</p>
+      <p>從臨床與多體學資料培育模型，探索精準醫療。</p>
     </article>
   </div>
 </section>
