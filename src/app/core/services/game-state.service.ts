@@ -12,7 +12,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class GameStateService {
-  private readonly storageKey = 'ai-academy-adventure-v5';
+  private readonly storageKey = 'ai-academy-adventure-v6';
 
   readonly branches = BRANCHES;
   readonly skills = SKILLS;

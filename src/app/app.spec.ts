@@ -41,10 +41,11 @@ describe('App', () => {
     const page = fixture.nativeElement as HTMLElement;
 
     expect(page.querySelector('h1')?.textContent).toContain('哪一種 AI 冒險者');
-    expect(page.textContent).toContain('智慧長照');
-    expect(page.textContent).toContain('護理紀錄');
+    expect(page.textContent).toContain('長照');
+    expect(page.textContent).toContain('照護紀錄');
     expect(page.textContent).toContain('精準醫療');
     expect(page.textContent).toContain('腦波');
+    expect(page.textContent).toContain('新藥探索');
     expect(page.textContent).toContain('沒有錯誤答案');
     expect(page.textContent).toContain('語言咒術師');
     expect(page.textContent).toContain('視覺獵人');
@@ -62,7 +63,7 @@ describe('App', () => {
     expect(page.querySelector('.speaker-portrait img')?.getAttribute('src')).toContain(
       'mira-engineer.png',
     );
-    expect(page.textContent).toContain('AI 不只會聊天或判讀影像');
+    expect(page.textContent).toContain('AI 可以支援健康溝通與長期照護');
   });
 
   it('should begin without granting Prompt or any other skill', () => {
@@ -83,15 +84,18 @@ describe('App', () => {
       'mira-engineer.png',
     );
     expect(page.querySelector('.choice-dialogue-box')?.textContent).toContain(
-      '你最想先讓它協助哪一類工作',
+      '你最想先探索哪一個大方向',
     );
+    expect(choices[0].textContent).toContain('照護與健康溝通');
+    expect(choices[1].textContent).toContain('診斷與生命訊號');
+    expect(choices[2].textContent).toContain('分子研究與新藥探索');
     expect(page.querySelector('.reward-preview')?.textContent).toContain('選擇後揭曉技能');
 
     choices[0].click();
     fixture.detectChanges();
 
-    expect(page.querySelector('.result-scene')?.textContent).toContain('Prompt 基礎');
     expect(page.querySelector('.result-scene')?.textContent).toContain('衛教轉譯');
+    expect(page.querySelector('.result-scene')?.textContent).toContain('智慧長照觀察');
     expect(page.querySelector('.direct-next')?.textContent).toContain('健康資料萬象庫');
     expect(page.querySelector('.map-return-button')).toBeTruthy();
     expect(page.querySelector('.undo-button')).toBeTruthy();
@@ -140,7 +144,7 @@ describe('App', () => {
     click(fixture, '.academy-hero .primary-cta');
     click(fixture, '.skip-dialogue');
 
-    expect(page.querySelector('.reward-preview')?.textContent).toContain('Prompt 基礎');
+    expect(page.querySelector('.reward-preview')?.textContent).toContain('衛教轉譯');
     expect(page.querySelector('.reward-preview')?.textContent).not.toContain('選擇後揭曉技能');
   });
 
@@ -152,7 +156,7 @@ describe('App', () => {
     const page = fixture.nativeElement as HTMLElement;
 
     expect(page.querySelector('app-world-map')).toBeTruthy();
-    expect(page.querySelector('.region-node.is-open')?.textContent).toContain('智慧照護迎新站');
+    expect(page.querySelector('.region-node.is-open')?.textContent).toContain('智慧醫療迎新站');
     expect(page.textContent).toContain('智慧醫療方法森林');
   });
 
