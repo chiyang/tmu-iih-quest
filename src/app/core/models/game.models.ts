@@ -62,6 +62,7 @@ export interface WorldRegion {
 }
 
 export interface CareerProfile {
+  readonly id: string;
   readonly regionId: string;
   readonly kicker: string;
   readonly className: string;
@@ -71,6 +72,7 @@ export interface CareerProfile {
   readonly careers: readonly string[];
   readonly research: readonly string[];
   readonly nextSkills: readonly string[];
+  readonly departments: readonly string[];
 }
 
 export interface RoundSnapshot {

@@ -10,12 +10,12 @@
       <p>{{ career.description }}</p>
     </div>
     <div class="career-tabs" aria-label="已解鎖專精職業">
-      @for (profile of game.careers; track profile.regionId) {
+      @for (profile of game.careers; track profile.id) {
         @if (game.trackIsComplete(profile.regionId)) {
           <button
             type="button"
-            [class.is-active]="game.activeCareer().regionId === profile.regionId"
-            (click)="game.showCareer(profile.regionId)"
+            [class.is-active]="game.activeCareer().id === profile.id"
+            (click)="game.showCareer(profile.regionId, profile.id)"
           >
             {{ profile.className }}
           </button>
@@ -26,7 +26,7 @@
       <article class="career-formula">
         <p class="panel-kicker">YOUR BUILD・職業構成</p>
         <div>
-          @for (part of career.formula; track part; let last = $last) {
+          @for (part of career.formula; track $index; let last = $last) {
             <span>{{ part }}</span>
             @if (!last) {
               <i>＋</i>
@@ -38,7 +38,7 @@
       <article>
         <p class="panel-kicker">REAL-WORLD ROLES・可能職涯</p>
         <ul>
-          @for (item of career.careers; track item) {
+          @for (item of career.careers; track $index) {
             <li><i>✦</i>{{ item }}</li>
           }
         </ul>
@@ -46,7 +46,7 @@
       <article>
         <p class="panel-kicker">RESEARCH FIELDS・研究方向</p>
         <ul>
-          @for (item of career.research; track item) {
+          @for (item of career.research; track $index) {
             <li><i>◇</i>{{ item }}</li>
           }
         </ul>
@@ -54,16 +54,25 @@
       <article>
         <p class="panel-kicker">NEXT SKILLS・下一步技能</p>
         <div class="next-skill-list">
-          @for (item of career.nextSkills; track item) {
+          @for (item of career.nextSkills; track $index) {
             <span>{{ item }}</span>
           }
         </div>
       </article>
+      <article>
+        <p class="panel-kicker">TMU PATHS・北醫相關學系</p>
+        <ul>
+          @for (item of career.departments; track $index) {
+            <li><i>✚</i>{{ item }}</li>
+          }
+        </ul>
+      </article>
     </div>
     <section class="future-classes">
-      <div><small>OTHER POSSIBILITIES</small><strong>冒險還會長出更多職業</strong></div>
-      <span>魔型工程師</span><span>資料鍊金師</span><span>使魔調度師</span><span>安全結界師</span
-      ><span>跨域觀測者</span>
+      <div><small>CLASS CODEX</small><strong>智慧醫療八大職業</strong></div>
+      <span>精準醫療射手</span><span>長照健康補師</span><span>生理訊號偵測斥侯</span
+      ><span>自然語言詠唱法師</span><span>智慧模型工程師</span><span>健康安全守護者</span
+      ><span>分子標靶刺客</span><span>臨床決策劍士</span>
     </section>
   </section>
 }

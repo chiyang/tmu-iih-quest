@@ -30,6 +30,7 @@ export class GameStateService {
   readonly selectedOption = signal<number | null>(null);
   readonly newlyUnlockedCapabilities = signal<readonly string[]>([]);
   readonly selectedTrack = signal<string | null>(null);
+  readonly activeCareerId = signal<string | null>(null);
   readonly lastRound = signal<RoundSnapshot | null>(null);
   readonly previewRewards = signal(false);
   readonly collectionOpen = signal(false);
@@ -71,24 +72,26 @@ export class GameStateService {
   });
   readonly activeCareer = computed(
     () =>
+      this.careers.find((career) => career.id === this.activeCareerId()) ??
       this.careers.find((career) => career.regionId === this.selectedTrack()) ??
       this.careers.find((career) => this.completedRegions().includes(career.regionId)) ??
       this.careers[0],
   );
   readonly currentClassName = computed(() => {
-    const selectedCareer = this.careers.find(
-      (career) =>
-        career.regionId === this.selectedTrack() &&
-        this.completedRegions().includes(career.regionId),
-    );
-    if (selectedCareer) return selectedCareer.className;
+    const selectedCareer = this.activeCareer();
+    if (
+      selectedCareer &&
+      selectedCareer.regionId === this.selectedTrack() &&
+      this.completedRegions().includes(selectedCareer.regionId)
+    )
+      return selectedCareer.className;
     const completedCareer = this.careers.find((career) =>
       this.completedRegions().includes(career.regionId),
     );
     if (completedCareer) return completedCareer.className;
     if (this.branchProgress('ai') >= 2 && this.branchProgress('programming') >= 1)
-      return '魔型工程師';
-    if (this.branchProgress('data') >= 2) return '資料鍊金師';
+      return '智慧模型工程師';
+    if (this.branchProgress('data') >= 2) return '智慧模型工程師見習';
     return '星引學徒';
   });
   readonly nextRegion = computed(() => {
@@ -168,7 +171,10 @@ export class GameStateService {
     this.questPhase.set(typeof savedChoice === 'number' ? 'result' : 'dialogue');
     this.dialogueIndex.set(0);
     this.newlyUnlockedCapabilities.set([]);
-    if (region.kind === 'specialization') this.selectedTrack.set(region.id);
+    if (region.kind === 'specialization') {
+      this.selectedTrack.set(region.id);
+      this.activeCareerId.set(null);
+    }
     this.view.set('quest');
     this.scrollToTop();
   }
@@ -242,6 +248,7 @@ export class GameStateService {
     this.completedRegions.set(snapshot.completedRegions);
     this.choices.set(snapshot.choices);
     this.selectedTrack.set(snapshot.selectedTrack);
+    this.activeCareerId.set(null);
     this.activeRegionId.set(snapshot.regionId);
     this.selectedOption.set(null);
     this.newlyUnlockedCapabilities.set([]);
@@ -252,9 +259,13 @@ export class GameStateService {
     this.scrollToTop();
   }
 
-  showCareer(regionId: string): void {
+  showCareer(regionId: string, careerId?: string): void {
     if (!this.completedRegions().includes(regionId)) return;
     this.selectedTrack.set(regionId);
+    const career = this.careers.find(
+      (profile) => profile.regionId === regionId && (!careerId || profile.id === careerId),
+    );
+    this.activeCareerId.set(career?.id ?? null);
     this.view.set('career');
     this.scrollToTop();
   }
@@ -272,6 +283,7 @@ export class GameStateService {
     this.activeRegionId.set(null);
     this.selectedOption.set(null);
     this.selectedTrack.set(null);
+    this.activeCareerId.set(null);
     this.lastRound.set(null);
     this.collectionOpen.set(false);
     this.settingsOpen.set(false);

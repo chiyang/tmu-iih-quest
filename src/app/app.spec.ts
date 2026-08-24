@@ -47,9 +47,16 @@ describe('App', () => {
     expect(page.textContent).toContain('腦波');
     expect(page.textContent).toContain('新藥探索');
     expect(page.textContent).toContain('沒有錯誤答案');
-    expect(page.textContent).toContain('語言咒術師');
-    expect(page.textContent).toContain('視覺獵人');
-    expect(page.textContent).toContain('魔型工程師');
+    [
+      '精準醫療射手',
+      '長照健康補師',
+      '生理訊號偵測斥侯',
+      '自然語言詠唱法師',
+      '智慧模型工程師',
+      '健康安全守護者',
+      '分子標靶刺客',
+      '臨床決策劍士',
+    ].forEach((className) => expect(page.textContent).toContain(className));
   });
 
   it('should start directly in the first illustrated character dialogue', async () => {
@@ -84,7 +91,7 @@ describe('App', () => {
       'mira-engineer.png',
     );
     expect(page.querySelector('.choice-dialogue-box')?.textContent).toContain(
-      '你最想先探索哪一個大方向',
+      '培養自己的第一條專精職業',
     );
     expect(choices[0].textContent).toContain('照護與健康溝通');
     expect(choices[1].textContent).toContain('診斷與生命訊號');
@@ -170,5 +177,15 @@ describe('App', () => {
       game.choices.set({ 'ml-forest': index });
       expect(game.nextRegionFor(forest!)?.name).toBe(destination);
     });
+  });
+
+  it('should connect all eight RPG classes to TMU-related departments', () => {
+    const game = TestBed.inject(GameStateService);
+
+    expect(game.careers).toHaveLength(8);
+    expect(game.careers.every((career) => career.id && career.departments.length > 0)).toBe(true);
+    expect(game.careers.flatMap((career) => career.departments)).toContain('生物醫學工程學系');
+    expect(game.careers.flatMap((career) => career.departments)).toContain('公共衛生學系');
+    expect(game.careers.flatMap((career) => career.departments)).toContain('藥學系');
   });
 });
