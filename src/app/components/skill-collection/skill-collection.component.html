@@ -1,0 +1,48 @@
+<div class="overlay" role="presentation" (click)="game.closeCollection()">
+  <section
+    class="collection-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-label="技能卡冊"
+    (click)="$event.stopPropagation()"
+  >
+    <header>
+      <div>
+        <p class="panel-kicker">ARCANE CODEX</p>
+        <h2>我的技能卡冊</h2>
+        <span>{{ game.acquiredSkills().length }} / {{ game.skills.length }} 張技能</span>
+      </div>
+      <button type="button" (click)="game.closeCollection()" aria-label="關閉技能卡冊">×</button>
+    </header>
+    <div class="collection-body">
+      @for (branch of game.branches; track branch.id) {
+        <article
+          class="branch-shelf"
+          [style.--branch-accent]="branch.accent"
+          [class.has-skills]="game.branchProgress(branch.id) > 0"
+        >
+          <div class="branch-cover">
+            <img [src]="branch.image" [alt]="branch.name + '技能卡'" /><span
+              ><small>{{ branch.shortName }}</small
+              ><strong>{{ branch.name }}</strong
+              ><b>{{ game.branchProgress(branch.id) }} 張</b></span
+            >
+          </div>
+          <div class="shelf-skills">
+            @if (game.branchSkills(branch.id).length) {
+              @for (skill of game.branchSkills(branch.id); track skill.id) {
+                <div>
+                  <span>LV.{{ skill.tier }}</span
+                  ><strong>{{ skill.name }}</strong>
+                  <p>{{ skill.canDo }}</p>
+                </div>
+              }
+            } @else {
+              <p class="empty-shelf">探索任務後，這個流派的技能會在此出現。</p>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+</div>

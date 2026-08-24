@@ -1,0 +1,29 @@
+<header class="game-header">
+  <button class="brand" type="button" (click)="game.goHome()" aria-label="回到 AI 星引學院首頁">
+    <span class="brand-sigil" aria-hidden="true">✦</span>
+    <span class="brand-copy"
+      ><strong>AI 星引學院</strong><small>ARCANE INTELLIGENCE ACADEMY</small></span
+    >
+  </button>
+  <div class="adventurer-hud" aria-label="冒險者資訊">
+    <div class="hud-avatar" aria-hidden="true">AI</div>
+    <div class="hud-identity">
+      <small>LV.{{ game.playerLevel() }}・現任職階</small
+      ><strong>{{ game.currentClassName() }}</strong>
+    </div>
+    <div class="hud-resource">
+      <i>✦</i><span>{{ game.acquiredSkills().length }}<small>技能</small></span>
+    </div>
+    <div class="hud-resource">
+      <i>◇</i><span>{{ game.unlockedCapabilities().length }}<small>能力</small></span>
+    </div>
+  </div>
+  <nav class="header-actions" aria-label="遊戲選單">
+    <button type="button" (click)="game.openCollection()">
+      <span aria-hidden="true">▦</span>卡冊
+    </button>
+    <button type="button" (click)="game.openSettings()">
+      <span aria-hidden="true">⚙</span>設定
+    </button>
+  </nav>
+</header>

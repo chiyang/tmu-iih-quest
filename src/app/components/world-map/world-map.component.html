@@ -1,0 +1,104 @@
+<section class="world-page">
+  <div class="world-heading">
+    <div>
+      <p class="chapter-label"><span>WORLD MAP</span> AI 能力大陸</p>
+      <h1>自由查看已走過與可前往的場景。</h1>
+      <p>主線結算後可直接前往下一關；大地圖現在是探索與回顧用的選項，不再是每次移動的必經畫面。</p>
+    </div>
+    <div class="exploration-meter">
+      <span><i [style.width.%]="game.progressPercent()"></i></span>
+      <div>
+        <strong>{{ game.progressPercent() }}%</strong><small>大陸探索度</small>
+      </div>
+    </div>
+  </div>
+  <div class="world-layout">
+    <div class="world-board" aria-label="AI 星引學院世界地圖">
+      <img class="world-art" src="assets/world/ai-continent.png" alt="魔法科技風格的 AI 能力大陸" />
+      <div class="world-vignette" aria-hidden="true"></div>
+      @for (region of game.regions; track region.id) {
+        <button
+          class="region-node"
+          type="button"
+          [class.is-completed]="game.regionStatus(region) === 'completed'"
+          [class.is-open]="game.regionStatus(region) === 'open'"
+          [class.is-locked]="game.regionStatus(region) === 'locked'"
+          [class.is-specialization]="region.kind === 'specialization'"
+          [class.is-career]="region.kind === 'career'"
+          [style.left.%]="region.x"
+          [style.top.%]="region.y"
+          [disabled]="game.regionStatus(region) === 'locked'"
+          (click)="game.openRegion(region)"
+        >
+          <span class="region-sigil"
+            ><i>{{ game.regionStatus(region) === 'locked' ? '⌁' : region.icon }}</i></span
+          >
+          <span class="region-label"
+            ><small>{{ region.chapter }}</small
+            ><strong>{{ region.name }}</strong
+            ><em>{{ region.subtitle }}</em
+            ><b>{{ game.regionStatusLabel(region) }}</b></span
+          >
+        </button>
+      }
+      <div class="world-legend">
+        <span><i class="done"></i>探索完成</span><span><i class="ready"></i>可接受任務</span
+        ><span><i></i>迷霧籠罩</span>
+      </div>
+    </div>
+    <aside class="quest-log">
+      <article class="adventurer-card">
+        <div class="mini-avatar">AI</div>
+        <div>
+          <small>目前職階</small><strong>{{ game.currentClassName() }}</strong
+          ><span>LV.{{ game.playerLevel() }} 星引冒險者</span>
+        </div>
+        <b>{{ game.acquiredSkills().length }}<small> SKILLS</small></b>
+      </article>
+      @if (game.lastRound(); as previousRound) {
+        <article class="last-choice-card">
+          <p class="panel-kicker">LAST CHOICE・上一局</p>
+          @if (game.chosenOptionFor(previousRound.regionId); as previousChoice) {
+            <div class="choice-summary">
+              <i>{{ previousChoice.icon }}</i
+              ><span
+                ><small>{{ previousChoice.archetype }}</small
+                ><strong>{{ previousChoice.label }}</strong></span
+              >
+            </div>
+          }
+          <p>最新一局仍可返回重選；撤回後不能繼續回到更早的關卡。</p>
+          <button class="undo-button" type="button" (click)="game.undoLastRound()">
+            ↶ 返回上一局重選
+          </button>
+        </article>
+      } @else {
+        <article class="last-choice-card is-empty">
+          <p class="panel-kicker">STORY MODE・移動規則</p>
+          <strong>結算後可直接前往下一關。</strong>
+          <p>若想探索其他路線、重看舊關卡或查職業，再回到這張大地圖。</p>
+        </article>
+      }
+      <article class="ability-log">
+        <div class="panel-title">
+          <span><small>ABILITIES</small><strong>已解鎖能力</strong></span
+          ><b>{{ game.unlockedCapabilities().length }}</b>
+        </div>
+        <div class="ability-items">
+          @for (capability of game.unlockedCapabilities(); track capability.id; let last = $last) {
+            <div [class.is-latest]="last">
+              <i>✦</i
+              ><span
+                ><strong>{{ capability.name }}</strong
+                ><small>{{ capability.description }}</small></span
+              >
+            </div>
+          }
+        </div>
+        <button type="button" (click)="game.openCollection()">
+          查看完整技能卡冊 <span>➜</span>
+        </button>
+      </article>
+    </aside>
+  </div>
+</section>

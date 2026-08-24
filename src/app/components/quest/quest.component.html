@@ -1,0 +1,175 @@
+@if (game.activeRegion(); as region) {
+  <section class="quest-page" [style.--quest-image]="'url(' + region.scene + ')'">
+    <div class="quest-stage">
+      <div class="stage-background" role="img" [attr.aria-label]="region.name + '場景背景'"></div>
+      <div class="stage-overlay" aria-hidden="true"></div>
+      <div class="quest-topline">
+        <button type="button" (click)="game.goToMap()">‹ 返回地圖</button>
+        <div>
+          <small>{{ region.chapter }}</small
+          ><strong>{{ region.name }}</strong
+          ><span>{{ region.subtitle }}</span>
+        </div>
+        <span class="no-wrong-badge">◇ 無錯誤答案</span>
+      </div>
+
+      @if (game.questPhase() === 'dialogue' && game.activeDialogue(); as line) {
+        <div class="novel-layout">
+          <div class="speaker-portrait" [class.is-urgent]="line.tone === 'urgent'">
+            <img [src]="line.portrait" [alt]="line.speaker" /><span>{{ line.speaker }}</span>
+          </div>
+          <article class="dialogue-box">
+            <div class="dialogue-context">
+              <span class="scene-chip">SCENE・{{ region.name }}</span
+              ><span>{{ game.dialogueIndex() + 1 }} / {{ region.dialogue.length }}</span>
+            </div>
+            <p class="speaker-name">{{ line.speaker }}</p>
+            <small class="speaker-role">{{ line.role }}</small>
+            <p class="briefing">{{ line.text }}</p>
+            @if (game.dialogueIndex() === region.dialogue.length - 1) {
+              <p class="quest-question">{{ region.question }}</p>
+            }
+            <div class="dialogue-progress" aria-label="對話進度">
+              @for (_ of region.dialogue; track $index) {
+                <i
+                  [class.is-current]="$index === game.dialogueIndex()"
+                  [class.is-read]="$index < game.dialogueIndex()"
+                ></i>
+              }
+            </div>
+            <div class="dialogue-footer">
+              <button class="skip-dialogue" type="button" (click)="game.skipToChoices()">
+                略過對話
+              </button>
+              <button class="primary-cta" type="button" (click)="game.advanceDialogue()">
+                {{
+                  game.dialogueIndex() < region.dialogue.length - 1 ? '下一段對話' : '選擇你的回應'
+                }}
+                <span>➜</span>
+              </button>
+            </div>
+          </article>
+        </div>
+      }
+
+      @if (game.questPhase() === 'choice') {
+        <div class="choice-scene">
+          <header>
+            <p class="panel-kicker">YOUR DECISION・選擇你的解法</p>
+            <h1>{{ region.question }}</h1>
+            <p>每個答案都能推進故事；差別在你優先解決哪個具體問題。</p>
+          </header>
+          <div class="choice-grid">
+            @for (option of region.options; track option.label; let index = $index) {
+              <button class="quest-choice" type="button" (click)="game.chooseQuestOption(index)">
+                <span class="choice-letter">{{ choiceLetters[index] }}</span
+                ><i>{{ option.icon }}</i
+                ><small>{{ option.archetype }}</small
+                ><strong>{{ option.label }}</strong>
+                <p>{{ option.detail }}</p>
+                <div class="reward-preview" [class.is-hidden]="!game.previewRewards()">
+                  <span>✦</span>
+                  @if (game.previewRewards()) {
+                    <em>
+                      @for (skillId of option.rewards; track skillId; let last = $last) {
+                        {{ game.skillById(skillId)?.name }}{{ last ? '' : ' ＋ ' }}
+                      }
+                    </em>
+                  } @else {
+                    <em>選擇後揭曉技能</em>
+                  }
+                </div>
+                <b>採取這個行動 <span>➜</span></b>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (game.questPhase() === 'result' && game.selectedQuestOption(); as result) {
+        <div class="result-scene">
+          <article class="result-story">
+            <p class="panel-kicker">QUEST RESOLVED・委託完成</p>
+            <span class="result-archetype"
+              ><i>{{ result.icon }}</i
+              >{{ result.archetype }}</span
+            >
+            <h1>{{ result.label }}</h1>
+            <p>{{ result.consequence }}</p>
+            <blockquote>你選擇的不是「正確答案」，而是一種解決問題的視角。</blockquote>
+          </article>
+          <section class="reward-reveal">
+            <header>
+              <span>✦</span>
+              <div><small>SKILL ACQUIRED</small><strong>技能卡已收入卡冊</strong></div>
+            </header>
+            <div class="reward-cards">
+              @for (skillId of result.rewards; track skillId) {
+                @if (game.skillById(skillId); as skill) {
+                  @if (game.branchForSkill(skillId); as branch) {
+                    <article class="reward-card" [style.--skill-accent]="branch.accent">
+                      <img [src]="branch.image" [alt]="branch.name + '技能卡'" />
+                      <div class="reward-card-copy">
+                        <small>{{ branch.shortName }}・TIER {{ skill.tier }}</small
+                        ><strong>{{ skill.name }}</strong>
+                        <p>{{ skill.description }}</p>
+                        <span>現在可以：{{ skill.canDo }}</span>
+                      </div>
+                    </article>
+                  }
+                }
+              }
+            </div>
+            @if (game.newlyUnlockedCapabilities().length) {
+              <div class="new-abilities">
+                <small>COMBINATION UNLOCKED・技能組合共鳴</small>
+                @for (capabilityId of game.newlyUnlockedCapabilities(); track capabilityId) {
+                  @if (game.capabilityById(capabilityId); as capability) {
+                    <div>
+                      <i>◇</i
+                      ><span
+                        ><strong>{{ capability.name }}</strong>
+                        <p>{{ capability.description }}</p></span
+                      >
+                    </div>
+                  }
+                }
+              </div>
+            }
+            @if (game.nextRegion(); as next) {
+              <div class="next-destination">
+                <small>NEXT DESTINATION</small
+                ><span
+                  ><i>{{ next.icon }}</i
+                  ><strong>{{ next.name }}</strong
+                  ><em>{{ next.subtitle }}</em></span
+                >
+              </div>
+            }
+            <div class="result-actions result-actions-four">
+              <button class="primary-cta direct-next" type="button" (click)="game.goToNextStage()">
+                {{ game.nextActionLabel(region) }} <span>➜</span>
+              </button>
+              <button class="map-return-button" type="button" (click)="game.goToMap()">
+                ⌖ 回到大地圖
+              </button>
+              @if (game.canUndoRegion(region.id)) {
+                <button class="undo-button" type="button" (click)="game.undoLastRound()">
+                  ↶ 返回重選
+                </button>
+              }
+              <button class="rebirth-button" type="button" (click)="game.resetAdventure()">
+                ♢ 重生回原點
+              </button>
+            </div>
+            @if (game.canUndoRegion(region.id)) {
+              <p class="undo-note">
+                只能撤回最新完成的這一局；直接完成下一關後，撤回機會會移到新的一局。
+              </p>
+            }
+          </section>
+        </div>
+      }
+    </div>
+  </section>
+}

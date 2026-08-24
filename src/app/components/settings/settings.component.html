@@ -1,0 +1,49 @@
+<div class="overlay settings-overlay" role="presentation" (click)="game.closeSettings()">
+  <section
+    class="settings-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="遊戲設定"
+    (click)="$event.stopPropagation()"
+  >
+    <header>
+      <div>
+        <p class="panel-kicker">SYSTEM MENU</p>
+        <h2>冒險設定</h2>
+      </div>
+      <button type="button" (click)="game.closeSettings()" aria-label="關閉設定">×</button>
+    </header>
+    <div class="setting-row">
+      <div>
+        <strong>預覽技能獎勵</strong>
+        <p>開啟後，回答前會顯示每個選項可能獲得的技能。預設關閉，讓選擇更像角色扮演。</p>
+      </div>
+      <button
+        class="toggle"
+        type="button"
+        role="switch"
+        [attr.aria-checked]="game.previewRewards()"
+        [class.is-on]="game.previewRewards()"
+        (click)="game.toggleRewardPreview()"
+      >
+        <span></span>{{ game.previewRewards() ? '開啟' : '關閉' }}
+      </button>
+    </div>
+    <div class="rule-card">
+      <i>→</i>
+      <div>
+        <strong>線性冒險與上一局</strong>
+        <p>
+          結算頁可直接進下一關。你仍能回到大地圖、撤回最新一局，或重生回原點；但不能連續回溯更早選擇。
+        </p>
+      </div>
+    </div>
+    <div class="reset-zone">
+      <div>
+        <strong>重生整趟冒險</strong>
+        <p>清除技能、選擇與探索進度，回到只有 Prompt 基礎的星引學徒。</p>
+      </div>
+      <button type="button" (click)="game.resetAdventure()">重生回原點</button>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,69 @@
+@if (game.activeCareer(); as career) {
+  <section class="career-page">
+    <div class="career-sky" aria-hidden="true"></div>
+    <div class="career-heading">
+      <button type="button" (click)="game.goToMap()">‹ 返回能力大陸</button>
+      <p class="chapter-label"><span>CLASS AWAKENING</span> 專精職業覺醒</p>
+      <small>{{ career.kicker }}</small>
+      <h1>{{ career.className }}</h1>
+      <strong>{{ career.realWorldTitle }}</strong>
+      <p>{{ career.description }}</p>
+    </div>
+    <div class="career-tabs" aria-label="已解鎖專精職業">
+      @for (profile of game.careers; track profile.regionId) {
+        @if (game.trackIsComplete(profile.regionId)) {
+          <button
+            type="button"
+            [class.is-active]="game.activeCareer().regionId === profile.regionId"
+            (click)="game.showCareer(profile.regionId)"
+          >
+            {{ profile.className }}
+          </button>
+        }
+      }
+    </div>
+    <div class="career-content">
+      <article class="career-formula">
+        <p class="panel-kicker">YOUR BUILD・職業構成</p>
+        <div>
+          @for (part of career.formula; track part; let last = $last) {
+            <span>{{ part }}</span>
+            @if (!last) {
+              <i>＋</i>
+            }
+          }
+        </div>
+        <p>這是一條可能的路，不是唯一終點。回到大地圖探索其他專精，技能仍會改變你的職業樣貌。</p>
+      </article>
+      <article>
+        <p class="panel-kicker">REAL-WORLD ROLES・可能職涯</p>
+        <ul>
+          @for (item of career.careers; track item) {
+            <li><i>✦</i>{{ item }}</li>
+          }
+        </ul>
+      </article>
+      <article>
+        <p class="panel-kicker">RESEARCH FIELDS・研究方向</p>
+        <ul>
+          @for (item of career.research; track item) {
+            <li><i>◇</i>{{ item }}</li>
+          }
+        </ul>
+      </article>
+      <article>
+        <p class="panel-kicker">NEXT SKILLS・下一步技能</p>
+        <div class="next-skill-list">
+          @for (item of career.nextSkills; track item) {
+            <span>{{ item }}</span>
+          }
+        </div>
+      </article>
+    </div>
+    <section class="future-classes">
+      <div><small>OTHER POSSIBILITIES</small><strong>冒險還會長出更多職業</strong></div>
+      <span>魔型工程師</span><span>資料鍊金師</span><span>使魔調度師</span><span>安全結界師</span
+      ><span>跨域觀測者</span>
+    </section>
+  </section>
+}

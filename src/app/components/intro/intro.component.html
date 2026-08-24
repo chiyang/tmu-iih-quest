@@ -1,0 +1,97 @@
+<section class="academy-hero">
+  <div class="hero-copy">
+    <p class="chapter-label"><span>NEW ADVENTURE</span> AI 能力探索 RPG</p>
+    <h1>你的選擇，會把你變成<br /><em>哪一種 AI 冒險者？</em></h1>
+    <p class="hero-lead">
+      跟著角色走進一連串具體委託：兩小時內整理 312 份回饋、修復 486
+      筆異常紀錄，再培育真正能預測的模型。這裡沒有錯誤答案，每一種行動都會長出不同技能。
+    </p>
+    <div class="hero-rule">
+      <span aria-hidden="true">◇</span>
+      <p>
+        <strong>故事會直接帶你前往下一關。</strong
+        ><small>每關結束仍可選擇大地圖、返回重選，或重生回原點。</small>
+      </p>
+    </div>
+    <div class="hero-actions">
+      <button class="primary-cta" type="button" (click)="game.startAdventure()">
+        {{ game.completedRegions().length > 1 ? '繼續主線任務' : '開始第一個委託'
+        }}<span aria-hidden="true">➜</span>
+      </button>
+      <button class="secondary-cta" type="button" (click)="game.openCollection()">
+        查看起始技能卡
+      </button>
+    </div>
+    <div class="hero-facts" aria-label="冒險特色">
+      <span><i>✓</i>無錯誤答案</span><span><i>→</i>線性連續冒險</span
+      ><span><i>✦</i>多種創意職業</span>
+    </div>
+  </div>
+  <aside class="guide-card">
+    <div class="guide-portrait">
+      <img src="assets/characters/lumi-guide.png" alt="星引學院引導員 Lumi" /><span
+        >ACADEMY GUIDE</span
+      >
+    </div>
+    <div class="guide-message">
+      <small>引導員 Lumi</small>
+      <p>「這次不只在地圖上看地名。我會帶你真正走進工坊、典藏室與森林，見到每一位委託人。」</p>
+    </div>
+    <div class="guide-card-preview" aria-label="起始技能卡">
+      <img src="assets/skills/artificial-intelligence.jpg" alt="人工智慧技能卡" />
+      <div><small>STARTING SKILL</small><strong>Prompt 基礎</strong><span>已裝備</span></div>
+    </div>
+  </aside>
+</section>
+
+<section class="adventure-loop">
+  <div class="section-intro">
+    <p class="chapter-label"><span>LINEAR STORY</span> 星引學院任務線</p>
+    <h2>故事向前走，選擇讓能力分化。</h2>
+    <p>前三關建立共同基礎；你在機器學習森林做出的決定，會直接帶往對應的專精角色與職業道路。</p>
+  </div>
+  <div class="loop-scroll">
+    <article>
+      <b>01</b><i>{{ '{ }' }}</i
+      ><strong>符文程式工坊</strong><small>312 份回饋、兩小時期限</small>
+    </article>
+    <span aria-hidden="true">➜</span>
+    <article>
+      <b>02</b><i>▥</i><strong>資料典藏室</strong><small>486 筆紀錄、14% 缺漏</small>
+    </article>
+    <span aria-hidden="true">➜</span>
+    <article>
+      <b>03</b><i>♢</i><strong>機器學習森林</strong><small>82% 準確率背後的陷阱</small>
+    </article>
+    <span aria-hidden="true">➜</span>
+    <article>
+      <b>04</b><i>◇</i><strong>專精角色試煉</strong><small>依上一關選擇前往不同場景</small>
+    </article>
+    <span aria-hidden="true">➜</span>
+    <article>
+      <b>05</b><i>★</i><strong>職業覺醒</strong><small>連結真實職涯與研究方向</small>
+    </article>
+  </div>
+</section>
+
+<section class="class-teasers">
+  <div class="teaser-copy">
+    <p class="chapter-label"><span>CLASS PATHS</span> 你的技能會彼此共鳴</p>
+    <h2>職業不是先選的，<br />而是一路長出來的。</h2>
+    <p>視覺獵人、語言咒術師、魔型工程師等職階，都來自你在具體情境中採取的行動。</p>
+  </div>
+  <div class="teaser-cards">
+    <article class="teaser-card vision">
+      <span>◉</span><small>VISION PATH</small><strong>視覺獵人</strong>
+      <p>追蹤影像中的細微線索，打造能看懂世界的魔眼。</p>
+    </article>
+    <article class="teaser-card language">
+      <span>✧</span><small>LANGUAGE PATH</small><strong>語言咒術師</strong>
+      <p>把知識、工具與語言模型編織成可靠的智慧咒式。</p>
+    </article>
+    <article class="teaser-card model">
+      <span>✦</span><small>MODEL PATH</small><strong>魔型工程師</strong>
+      <p>從資料中培育模型，理解預測力量與能力邊界。</p>
+    </article>
+  </div>
+</section>
