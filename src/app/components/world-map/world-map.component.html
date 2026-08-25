@@ -18,7 +18,16 @@
     <div class="world-board" aria-label="TMU AI跨域星引學院世界地圖">
       <img class="world-art" src="assets/world/ai-continent.png" alt="魔法科技風格的 AI 能力大陸" />
       <div class="world-vignette" aria-hidden="true"></div>
-      @for (region of game.mapRegions; track region.id) {
+      @for (region of game.mapRegions; track region.id; let index = $index) {
+        @if (index === 0) {
+          <p class="mobile-map-stage">起點 · 學院入口</p>
+        } @else if (index === 1) {
+          <p class="mobile-map-stage">主線任務 · 依序探索</p>
+        } @else if (index === 4) {
+          <p class="mobile-map-stage">專精分支 · 可自由選擇</p>
+        } @else if (index === 8) {
+          <p class="mobile-map-stage">終章 · 企業委託與職業覺醒</p>
+        }
         <button
           class="region-node"
           type="button"

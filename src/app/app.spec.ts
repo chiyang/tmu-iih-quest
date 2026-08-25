@@ -257,6 +257,30 @@ describe('App', () => {
     expect(page.querySelector('app-world-map')).toBeTruthy();
     expect(page.querySelector('.region-node.is-open')?.textContent).toContain('智慧醫療迎新站');
     expect(page.textContent).toContain('智慧醫療方法森林');
+
+    const regionNames = Array.from(page.querySelectorAll('.region-label strong'), (node) =>
+      node.textContent?.trim(),
+    );
+    expect(regionNames).toEqual([
+      '智慧醫療門',
+      '智慧醫療迎新站',
+      '健康資料萬象庫',
+      '智慧醫療方法森林',
+      '生命訊號觀測台',
+      '照護語言秘典城',
+      '分子星脈研究站',
+      '食養安全守望塔',
+      '星橋企業委託所',
+      '職涯星冠城',
+    ]);
+    expect(
+      Array.from(page.querySelectorAll('.mobile-map-stage'), (node) => node.textContent?.trim()),
+    ).toEqual([
+      '起點 · 學院入口',
+      '主線任務 · 依序探索',
+      '專精分支 · 可自由選擇',
+      '終章 · 企業委託與職業覺醒',
+    ]);
   });
 
   it('should use the prologue node to return home instead of opening the codex', async () => {
@@ -345,9 +369,7 @@ describe('App', () => {
     expect(game.unlockedCapabilities().map((capability) => capability.name)).toContain(
       '居家安全觀測術',
     );
-    expect(game.unlockedCareers().map((career) => career.className)).toContain(
-      '醫療照護視覺獵人',
-    );
+    expect(game.unlockedCareers().map((career) => career.className)).toContain('醫療照護視覺獵人');
     expect(game.skillById('computer-vision')?.canDo).toContain('影像分割');
   });
 
@@ -658,9 +680,7 @@ describe('App', () => {
     expect(page.textContent).toContain('你在這趟冒險中，覺醒了以下專精職業');
     expect(page.textContent).toContain('冒險途中收集了 6 張技能卡');
     expect(page.textContent).not.toContain('北醫相關學系');
-    expect(page.querySelector('.share-profile-button')?.textContent).toContain(
-      '分享履歷圖',
-    );
+    expect(page.querySelector('.share-profile-button')?.textContent).toContain('分享履歷圖');
     expect(page.querySelector('.profile-actions .download-profile-button')?.textContent).toContain(
       '下載履歷圖',
     );
