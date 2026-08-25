@@ -211,7 +211,7 @@ button:focus-visible {
       rgba(5, 9, 24, 0.78) 45%,
       rgba(5, 9, 24, 0.3) 100%
     ),
-    url('/assets/world/ai-continent.png');
+    var(--hero-map);
   background-size: cover;
   background-position: center;
 }
