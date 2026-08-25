@@ -1,21 +1,21 @@
 <section class="academy-hero">
   <div class="hero-copy">
     <p class="chapter-label"><span>NEW ADVENTURE</span> AI 能力探索 RPG</p>
-    <h1>你的選擇，會把你變成<br /><em>哪一種 AI 冒險者？</em></h1>
+    <h1>智慧醫療的未知領域，<br /><em>正等待你的第一步。</em></h1>
     <p class="hero-lead">
-      給還沒有方向的你：從照護與健康溝通、診斷與生命訊號，到多體學、分子醫學與新藥探索。
-      這裡沒有錯誤答案，每一種選擇都會帶你認識不同的健康 AI 能力。
+      從照護與健康溝通、診斷與生命訊號、食品營養安全，到多體學、分子醫學與新藥探索。
+      選擇一個你想像的方向，看看為了實現它，需要學會哪些資料、AI 與醫療技能。
     </p>
     <div class="hero-rule">
       <span aria-hidden="true">◇</span>
       <p>
-        <strong>故事會直接帶你前往下一關。</strong
-        ><small>每關結束仍可選擇大地圖、返回重選，或重生回原點。</small>
+        <strong>每一次選擇，都會為你帶來不同的技能卡。</strong
+        ><small>結算後帶著新舊手牌回到大地圖，再選擇下一段冒險。</small>
       </p>
     </div>
     <div class="hero-actions">
       <button class="primary-cta" type="button" (click)="game.startAdventure()">
-        {{ game.completedRegions().length > 1 ? '繼續主線任務' : '開始第一個委託'
+        {{ game.completedRegions().length > 1 ? '回到能力大陸' : '展開能力大陸地圖'
         }}<span aria-hidden="true">➜</span>
       </button>
       <button class="secondary-cta" type="button" (click)="game.openCollection()">
@@ -23,13 +23,13 @@
       </button>
     </div>
     <div class="hero-facts" aria-label="冒險特色">
-      <span><i>✓</i>無錯誤答案</span><span><i>→</i>線性連續冒險</span
-      ><span><i>✦</i>多種創意職業</span>
+      <span><i>◇</i>情境式方向選擇</span><span><i>→</i>大地圖探索</span
+      ><span><i>✦</i>技能組合職業</span>
     </div>
   </div>
   <aside class="guide-card">
     <div class="guide-portrait">
-      <img src="assets/characters/lumi-guide.png" alt="星引學院引導員 Lumi" /><span
+      <img src="assets/characters/lumi-guide.png" alt="TMU AI跨域星引學院引導員 Lumi" /><span
         >ACADEMY GUIDE</span
       >
     </div>
@@ -37,27 +37,39 @@
       <small>引導員 Lumi</small>
       <p>「你不需要先會寫程式。從一個想幫助的人開始，我們會一起看見智慧醫療的不同道路。」</p>
     </div>
-    <div class="guide-card-preview is-unclaimed" aria-label="尚未取得起始技能">
-      <i aria-hidden="true">?</i>
-      <div>
-        <small>YOUR FIRST SKILL</small><strong>由第一個選擇決定</strong><span>尚未裝備</span>
+    @if (game.acquiredSkills().length) {
+      <div class="guide-card-preview is-progress" aria-label="目前冒險進度">
+        <i aria-hidden="true">{{ game.progressPercent() }}%</i>
+        <div>
+          <small>ADVENTURE PROGRESS</small
+          ><strong>已收集 {{ game.acquiredSkills().length }} 張技能卡</strong
+          ><span>LV.{{ game.playerLevel() }}・{{ game.currentClassName() }}</span>
+        </div>
       </div>
-    </div>
+    } @else {
+      <div class="guide-card-preview is-unclaimed" aria-label="尚未取得起始技能">
+        <i aria-hidden="true">?</i>
+        <div>
+          <small>YOUR FIRST SKILL</small><strong>由第一個選擇決定</strong><span>尚未裝備</span>
+        </div>
+      </div>
+    }
   </aside>
 </section>
 
 <section class="adventure-loop">
   <div class="section-intro">
-    <p class="chapter-label"><span>LINEAR STORY</span> 星引學院任務線</p>
-    <h2>故事向前走，選擇讓能力分化。</h2>
+    <p class="chapter-label"><span>ADVENTURE ROUTE</span> TMU AI跨域星引學院探索路線</p>
+    <h2>選擇想像，收下實現它所需的技能。</h2>
     <p>
-      前三關先認識智慧醫療領域、健康資料與 AI 方法；之後再依興趣走向影像訊號、醫療語言或精準醫療。
+      前三關先認識智慧醫療領域、健康資料與 AI
+      方法；每關結束回到地圖，專精區開啟後再由你決定探索順序。
     </p>
   </div>
   <div class="loop-scroll">
     <article>
       <b>01</b><i>{{ '{ }' }}</i
-      ><strong>智慧醫療迎新站</strong><small>照護、診斷與分子藥物研究</small>
+      ><strong>智慧醫療迎新站</strong><small>照護、診斷、食養與分子研究</small>
     </article>
     <span aria-hidden="true">➜</span>
     <article>
@@ -99,11 +111,15 @@
     </article>
     <article>
       <i>✣</i><strong>精準醫療與分子研究</strong>
-      <p>基因體、轉錄體、蛋白體、代謝體整合與生物標記探索。</p>
+      <p>基因體、微生物菌相、質譜、多體學整合與生物標記探索。</p>
     </article>
     <article>
       <i>⌘</i><strong>醫院流程與公共衛生</strong>
       <p>分流、床位與人力安排、疾病監測、研究和藥物開發。</p>
+    </article>
+    <article>
+      <i>❈</i><strong>食品、營養與族群健康</strong>
+      <p>食品檢驗與污染風險、營養成分、菌相、飲食監測與健康不平等。</p>
     </article>
     <article>
       <i>⬡</i><strong>安全、倫理與資料治理</strong>
@@ -116,25 +132,58 @@
   <div class="teaser-copy">
     <p class="chapter-label"><span>CLASS PATHS</span> 你的技能會彼此共鳴</p>
     <h2>職業不是先選的，<br />而是一路長出來的。</h2>
-    <p>每個回答都會留下職業傾向；相同技能也可能在不同醫療專業中形成不同職階。</p>
-    <div class="class-roster" aria-label="智慧醫療八大職業">
-      <span>精準醫療射手</span><span>長照健康補師</span><span>生理訊號偵測斥侯</span
-      ><span>自然語言詠唱法師</span><span>智慧模型工程師</span><span>健康安全守護者</span
-      ><span>分子標靶刺客</span><span>臨床決策劍士</span>
+    <p>當特定技能彼此共鳴，專精職業才會覺醒；繼續探索，還可以同時解鎖不只一種職階。</p>
+    <div class="class-roster" aria-label="智慧醫療專精職業一覽">
+      @for (career of game.careers; track career.id) {
+        <button
+          type="button"
+          [class.is-active]="selectedCareerId() === career.id"
+          [class.is-awakened]="game.careerIsUnlocked(career)"
+          [attr.aria-pressed]="selectedCareerId() === career.id"
+          (click)="selectCareer(career.id)"
+        >
+          <i aria-hidden="true">{{ game.careerIsUnlocked(career) ? '✦' : '◇' }}</i
+          >{{ career.className }}
+        </button>
+      }
     </div>
   </div>
-  <div class="teaser-cards">
-    <article class="teaser-card vision">
-      <span>⌖</span><small>BIOSIGNAL PATH</small><strong>生理訊號偵測斥侯</strong>
-      <p>探索腦波、心電圖、呼吸與穿戴訊號中的細微變化。</p>
+  @if (selectedCareer(); as career) {
+    <article class="teaser-career-preview">
+      <div class="teaser-career-image">
+        <img [src]="career.image" [alt]="career.className + '職業形象'" />
+        <span>{{ game.careerIsUnlocked(career) ? '✦ 已覺醒' : '◇ 等待冒險中覺醒' }}</span>
+      </div>
+      <div class="teaser-career-copy">
+        <small>{{ career.kicker }}</small>
+        <h3>{{ career.className }}</h3>
+        <em>{{ career.realWorldTitle }}</em>
+        <p>{{ career.description }}</p>
+        <div class="teaser-career-formula">
+          @for (part of career.formula; track $index) {
+            <span>{{ part }}</span>
+          }
+        </div>
+        <footer>
+          <strong>可能連結的真實方向</strong>
+          <p>{{ career.careers.join('・') }}</p>
+        </footer>
+      </div>
     </article>
-    <article class="teaser-card language">
-      <span>✧</span><small>LANGUAGE PATH</small><strong>自然語言詠唱法師</strong>
-      <p>把可信知識、照護文字與語言模型編織成可靠咒式。</p>
-    </article>
-    <article class="teaser-card model">
-      <span>➶</span><small>PRECISION PATH</small><strong>精準醫療射手</strong>
-      <p>整合臨床與多體學證據，瞄準疾病分群與療效線索。</p>
-    </article>
-  </div>
+  }
 </section>
+
+<footer class="academy-footer" aria-label="提供單位與內容說明">
+  <div class="academy-provider">
+    <p>
+      <small>單位</small><br />
+      <strong>臺北醫學大學 智慧醫療跨領域學士學位學程</strong>
+    </p>
+  </div>
+  <p class="academy-disclaimer">
+    <strong>內容說明</strong><br />
+    <span>
+      本遊戲程式透過 AI 協作完成，以教育探索與娛樂體驗為目的。智慧醫療領域與職涯路徑持續發展，本遊戲無法涵蓋所有專業、研究方向與職涯可能；遊戲結果亦不構成個人職涯規劃建議，敬請見諒。
+    </span>
+  </p>
+</footer>

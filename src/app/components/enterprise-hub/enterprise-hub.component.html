@@ -1,0 +1,94 @@
+@if (game.enterpriseHubRegion; as hub) {
+  <section class="enterprise-page" [style.--enterprise-image]="'url(' + hub.scene + ')'">
+    <div class="enterprise-stage">
+      <div class="enterprise-background" role="img" [attr.aria-label]="hub.name + '場景背景'"></div>
+      <div class="enterprise-overlay" aria-hidden="true"></div>
+      <div class="enterprise-topline">
+        <button type="button" (click)="game.goToMap()">‹ 返回大地圖</button>
+        <div>
+          <small>{{ hub.chapter }}</small>
+          <strong>{{ hub.name }}</strong>
+          <span>{{ hub.subtitle }}</span>
+        </div>
+        <b
+          >{{ game.completedEnterpriseContracts().length }} /
+          {{ game.enterpriseContracts.length }}</b
+        >
+      </div>
+
+      <div class="enterprise-briefing-layout">
+        <aside class="enterprise-mentor">
+          <img src="assets/characters/aria-enterprise-mentor-v2.png" alt="產業協作導師 Aria" />
+          <span>
+            <small>INDUSTRY–ACADEMIA GUIDE</small>
+            <strong>產業協作導師 Aria</strong>
+            <em>智慧醫療產品與導入顧問</em>
+          </span>
+        </aside>
+
+        <section class="enterprise-contract-board">
+          <header>
+            <p class="panel-kicker">OPTIONAL COMMISSIONS・選修企業委託</p>
+            <h1>把智慧醫療的想像，帶進真實世界。</h1>
+            <p>
+              這裡不是前往職業覺醒的必經關卡。兩份委託可以分別完成：一份探索軟體、智慧醫材與照護服務如何形成產品；另一份探索不同專業如何共同導入
+              AI。
+            </p>
+            <div class="enterprise-route-note">
+              <span>完成任一專精後開放</span><i>◇</i><span>兩份委託皆可完成</span><i>◇</i
+              ><span>可隨時回到職涯星冠城</span>
+            </div>
+          </header>
+
+          <div class="enterprise-contract-grid">
+            @for (contract of game.enterpriseContracts; track contract.id; let index = $index) {
+              @if (game.careerForRegion(contract.id); as career) {
+                <article
+                  class="enterprise-contract-card"
+                  [class.is-completed]="game.regionStatus(contract) === 'completed'"
+                >
+                  <div class="contract-number">0{{ index + 1 }}</div>
+                  <div class="contract-sigil">{{ contract.icon }}</div>
+                  <small>{{ contract.chapter }}</small>
+                  <h2>{{ contract.name }}</h2>
+                  <p>{{ contract.subtitle }}</p>
+                  <div class="contract-focus">
+                    @for (part of career.formula; track part) {
+                      <span>{{ part }}</span>
+                    }
+                  </div>
+                  @if (game.regionStatus(contract) === 'completed') {
+                    <div class="contract-awakening">
+                      <img [src]="career.image" [alt]="career.className + '職業角色'" />
+                      <span
+                        ><small>CLASS AWAKENED</small><strong>{{ career.className }}</strong></span
+                      >
+                    </div>
+                  } @else {
+                    <div class="contract-awakening is-mystery">
+                      <i>✦</i>
+                      <span
+                        ><small>CLASS RESONANCE</small><strong>完成後形成新的跨域職階</strong></span
+                      >
+                    </div>
+                  }
+                  <button type="button" (click)="game.openRegion(contract)">
+                    {{
+                      game.regionStatus(contract) === 'completed' ? '回顧委託結果' : '接受這份委託'
+                    }}
+                    <span>➜</span>
+                  </button>
+                </article>
+              }
+            }
+          </div>
+
+          <footer>
+            <p>想先看看目前技能形成的職業，也可以直接前往職涯星冠城。</p>
+            <button type="button" (click)="game.goToMap()">回到大地圖選擇下一站 ➜</button>
+          </footer>
+        </section>
+      </div>
+    </div>
+  </section>
+}

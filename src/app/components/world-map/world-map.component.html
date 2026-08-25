@@ -2,8 +2,10 @@
   <div class="world-heading">
     <div>
       <p class="chapter-label"><span>WORLD MAP</span> AI 能力大陸</p>
-      <h1>自由查看已走過與可前往的場景。</h1>
-      <p>主線結算後可直接前往下一關；大地圖現在是探索與回顧用的選項，不再是每次移動的必經畫面。</p>
+      <h1>回到大陸，尋找下一段冒險。</h1>
+      <p>
+        每關結束都會回到這裡。發光的節點就是現在可前往的場景；後期會同時開啟不同路線，由你決定探索順序。
+      </p>
     </div>
     <div class="exploration-meter">
       <span><i [style.width.%]="game.progressPercent()"></i></span>
@@ -13,17 +15,20 @@
     </div>
   </div>
   <div class="world-layout">
-    <div class="world-board" aria-label="AI 星引學院世界地圖">
+    <div class="world-board" aria-label="TMU AI跨域星引學院世界地圖">
       <img class="world-art" src="assets/world/ai-continent.png" alt="魔法科技風格的 AI 能力大陸" />
       <div class="world-vignette" aria-hidden="true"></div>
-      @for (region of game.regions; track region.id) {
+      @for (region of game.mapRegions; track region.id) {
         <button
           class="region-node"
           type="button"
           [class.is-completed]="game.regionStatus(region) === 'completed'"
           [class.is-open]="game.regionStatus(region) === 'open'"
+          [class.is-recommended]="game.isRecommendedRegion(region)"
           [class.is-locked]="game.regionStatus(region) === 'locked'"
+          [class.is-start]="region.kind === 'start'"
           [class.is-specialization]="region.kind === 'specialization'"
+          [class.is-enterprise]="region.kind === 'enterprise-hub'"
           [class.is-career]="region.kind === 'career'"
           [style.left.%]="region.x"
           [style.top.%]="region.y"
@@ -62,7 +67,7 @@
             <div class="choice-summary">
               <i>{{ previousChoice.icon }}</i
               ><span
-                ><small>{{ previousChoice.archetype }}</small
+                ><small>{{ previousChoice.direction }}</small
                 ><strong>{{ previousChoice.label }}</strong></span
               >
             </div>
@@ -75,8 +80,8 @@
       } @else {
         <article class="last-choice-card is-empty">
           <p class="panel-kicker">STORY MODE・移動規則</p>
-          <strong>結算後可直接前往下一關。</strong>
-          <p>若想探索其他路線、重看舊關卡或查職業，再回到這張大地圖。</p>
+          <strong>每段故事都從大地圖再出發。</strong>
+          <p>前期會有清楚的下一站；專精區開啟後，你可自由決定先去哪裡。</p>
         </article>
       }
       <article class="ability-log">

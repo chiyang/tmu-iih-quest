@@ -1,24 +1,44 @@
-import { computed, effect, Injectable, signal } from '@angular/core';
-import { BRANCHES, CAPABILITIES, CAREERS, REGIONS, SKILLS } from '../data/game.data';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import {
+  BRANCHES,
+  CAPABILITIES,
+  CAREERS,
+  REGIONS,
+  SKILLS,
+  SKILL_STAT_BONUSES,
+  STAT_AXES,
+} from '../data/game.data';
 import {
   BranchId,
+  Capability,
+  CareerProfile,
   GameView,
   RoundSnapshot,
   SavedGameState,
   SkillBranch,
   SkillItem,
+  SkillStatBonus,
   WorldRegion,
 } from '../models/game.models';
+import { AdventureShareProfile, ProfileShareService } from './profile-share.service';
 
 @Injectable({ providedIn: 'root' })
 export class GameStateService {
   private readonly storageKey = 'ai-academy-adventure-v6';
+  private readonly profileShare = inject(ProfileShareService);
 
   readonly branches = BRANCHES;
   readonly skills = SKILLS;
   readonly capabilities = CAPABILITIES;
   readonly regions = REGIONS;
+  readonly mapRegions = this.regions.filter((region) => region.visibleOnMap !== false);
   readonly careers = CAREERS;
+  readonly statAxes = STAT_AXES;
+  readonly enterpriseHubRegion =
+    this.regions.find((region) => region.kind === 'enterprise-hub') ?? null;
+  readonly enterpriseContracts = this.regions.filter(
+    (region) => region.kind === 'enterprise-contract',
+  );
 
   readonly view = signal<GameView>('intro');
   readonly acquiredSkills = signal<readonly string[]>([]);
@@ -35,6 +55,8 @@ export class GameStateService {
   readonly previewRewards = signal(false);
   readonly collectionOpen = signal(false);
   readonly settingsOpen = signal(false);
+  readonly shareStatus = signal<string | null>(null);
+  readonly sharingProfile = signal(false);
 
   readonly activeRegion = computed(
     () => this.regions.find((region) => region.id === this.activeRegionId()) ?? null,
@@ -49,10 +71,41 @@ export class GameStateService {
     return region && index !== null ? (region.options[index] ?? null) : null;
   });
   readonly acquiredSkillSet = computed(() => new Set(this.acquiredSkills()));
+  readonly completedRegionSet = computed(() => new Set(this.completedRegions()));
   readonly unlockedCapabilities = computed(() =>
     this.capabilities.filter((capability) =>
-      capability.requires.every((skillId) => this.acquiredSkillSet().has(skillId)),
+      this.capabilityRequirementsMet(capability, this.acquiredSkillSet()),
     ),
+  );
+  readonly unlockedCareers = computed(() =>
+    this.careers.filter((career) =>
+      this.careerRequirementsMet(career, this.acquiredSkillSet(), this.completedRegionSet()),
+    ),
+  );
+  readonly newlyUnlockedCareers = computed(() => {
+    const snapshot = this.lastRound();
+    if (!snapshot || snapshot.regionId !== this.activeRegionId()) return [];
+    const previousSkills = new Set(snapshot.acquiredSkills);
+    const previousCompletedRegions = new Set(snapshot.completedRegions);
+    return this.unlockedCareers().filter(
+      (career) => !this.careerRequirementsMet(career, previousSkills, previousCompletedRegions),
+    );
+  });
+  readonly skillProfileScores = computed(() =>
+    this.statAxes.map((axis) => ({
+      ...axis,
+      value: Math.min(
+        10,
+        this.acquiredSkills().reduce(
+          (total, skillId) =>
+            total +
+            this.skillStatBonuses(skillId)
+              .filter((bonus) => bonus.axis === axis.id)
+              .reduce((sum, bonus) => sum + bonus.points, 0),
+          0,
+        ),
+      ),
+    })),
   );
   readonly playerLevel = computed(() => Math.max(1, this.completedRegions().length));
   readonly hasSpecialization = computed(() =>
@@ -60,9 +113,15 @@ export class GameStateService {
       (region) => region.kind === 'specialization' && this.completedRegions().includes(region.id),
     ),
   );
+  readonly completedEnterpriseContracts = computed(() =>
+    this.enterpriseContracts.filter((region) => this.completedRegions().includes(region.id)),
+  );
   readonly progressPercent = computed(() => {
     const quests = this.regions.filter(
-      (region) => region.kind === 'main' || region.kind === 'specialization',
+      (region) =>
+        region.kind === 'main' ||
+        region.kind === 'specialization' ||
+        region.kind === 'enterprise-contract',
     );
     return Math.round(
       (quests.filter((region) => this.completedRegions().includes(region.id)).length /
@@ -70,33 +129,40 @@ export class GameStateService {
         100,
     );
   });
-  readonly activeCareer = computed(
-    () =>
-      this.careers.find((career) => career.id === this.activeCareerId()) ??
-      this.careers.find((career) => career.regionId === this.selectedTrack()) ??
-      this.careers.find((career) => this.completedRegions().includes(career.regionId)) ??
-      this.careers[0],
-  );
+  readonly activeCareer = computed(() => {
+    const unlocked = this.unlockedCareers();
+    return unlocked.find((career) => career.id === this.activeCareerId()) ?? unlocked[0] ?? null;
+  });
   readonly currentClassName = computed(() => {
-    const selectedCareer = this.activeCareer();
-    if (
-      selectedCareer &&
-      selectedCareer.regionId === this.selectedTrack() &&
-      this.completedRegions().includes(selectedCareer.regionId)
-    )
-      return selectedCareer.className;
-    const completedCareer = this.careers.find((career) =>
-      this.completedRegions().includes(career.regionId),
-    );
-    if (completedCareer) return completedCareer.className;
-    if (this.branchProgress('ai') >= 2 && this.branchProgress('programming') >= 1)
-      return '智慧模型工程師';
-    if (this.branchProgress('data') >= 2) return '智慧模型工程師見習';
+    const career = this.activeCareer();
+    if (career) return career.className;
     return '星引學徒';
   });
   readonly nextRegion = computed(() => {
     const region = this.activeRegion();
     return region ? this.nextRegionFor(region) : null;
+  });
+  readonly recommendedRegionId = computed(() => {
+    const snapshot = this.lastRound();
+    if (!snapshot) {
+      return (
+        this.regions.find(
+          (region) => region.kind === 'main' && this.regionStatus(region) === 'open',
+        )?.id ?? null
+      );
+    }
+    const completedRegion = this.regions.find((region) => region.id === snapshot.regionId);
+    if (!completedRegion) return null;
+    if (completedRegion.kind === 'specialization' && this.unlockedCareers().length)
+      return 'career-citadel';
+    if (completedRegion.kind === 'enterprise-contract') {
+      const hasRemainingContract = this.enterpriseContracts.some(
+        (region) => !this.completedRegions().includes(region.id),
+      );
+      if (hasRemainingContract) return this.enterpriseHubRegion?.id ?? null;
+      if (this.unlockedCareers().length) return 'career-citadel';
+    }
+    return this.nextRegionFor(completedRegion)?.id ?? null;
   });
 
   constructor() {
@@ -117,11 +183,7 @@ export class GameStateService {
   }
 
   startAdventure(): void {
-    const nextMain = this.regions.find(
-      (region) => region.kind === 'main' && !this.completedRegions().includes(region.id),
-    );
-    if (nextMain && this.regionStatus(nextMain) === 'open') this.openRegion(nextMain);
-    else this.goToMap();
+    this.goToMap();
   }
 
   goHome(): void {
@@ -134,6 +196,15 @@ export class GameStateService {
     this.closeOverlays();
     this.view.set('map');
     this.activeRegionId.set(null);
+    this.scrollToTop();
+  }
+
+  goToEnterpriseHub(): void {
+    const hub = this.enterpriseHubRegion;
+    if (!hub || this.regionStatus(hub) === 'locked') return;
+    this.closeOverlays();
+    this.activeRegionId.set(hub.id);
+    this.view.set('enterprise');
     this.scrollToTop();
   }
 
@@ -156,12 +227,16 @@ export class GameStateService {
   openRegion(region: WorldRegion): void {
     if (this.regionStatus(region) === 'locked') return;
     if (region.kind === 'start') {
-      this.openCollection();
+      this.goHome();
       return;
     }
     if (region.kind === 'career') {
       this.view.set('career');
       this.scrollToTop();
+      return;
+    }
+    if (region.kind === 'enterprise-hub') {
+      this.goToEnterpriseHub();
       return;
     }
 
@@ -171,7 +246,7 @@ export class GameStateService {
     this.questPhase.set(typeof savedChoice === 'number' ? 'result' : 'dialogue');
     this.dialogueIndex.set(0);
     this.newlyUnlockedCapabilities.set([]);
-    if (region.kind === 'specialization') {
+    if (region.kind === 'specialization' || region.kind === 'enterprise-contract') {
       this.selectedTrack.set(region.id);
       this.activeCareerId.set(null);
     }
@@ -214,7 +289,7 @@ export class GameStateService {
       .filter(
         (capability) =>
           !capabilitiesBefore.has(capability.id) &&
-          capability.requires.every((skillId) => nextSkillSet.has(skillId)),
+          this.capabilityRequirementsMet(capability, nextSkillSet),
       )
       .map((capability) => capability.id);
 
@@ -222,7 +297,8 @@ export class GameStateService {
     this.acquiredSkills.set(nextSkills);
     this.completedRegions.update((completed) => [...new Set([...completed, region.id])]);
     this.choices.update((choices) => ({ ...choices, [region.id]: index }));
-    if (region.kind === 'specialization') this.selectedTrack.set(region.id);
+    if (region.kind === 'specialization' || region.kind === 'enterprise-contract')
+      this.selectedTrack.set(region.id);
     this.selectedOption.set(index);
     this.newlyUnlockedCapabilities.set(newCapabilities);
     this.questPhase.set('result');
@@ -234,6 +310,10 @@ export class GameStateService {
     if (!region) return;
     if (region.kind === 'specialization') {
       this.showCareer(region.id);
+      return;
+    }
+    if (region.kind === 'enterprise-contract') {
+      this.goToEnterpriseHub();
       return;
     }
     const next = this.nextRegionFor(region);
@@ -260,12 +340,14 @@ export class GameStateService {
   }
 
   showCareer(regionId: string, careerId?: string): void {
-    if (!this.completedRegions().includes(regionId)) return;
-    this.selectedTrack.set(regionId);
-    const career = this.careers.find(
-      (profile) => profile.regionId === regionId && (!careerId || profile.id === careerId),
-    );
-    this.activeCareerId.set(career?.id ?? null);
+    const unlocked = this.unlockedCareers();
+    const career =
+      unlocked.find((profile) => profile.id === careerId) ??
+      unlocked.find((profile) => profile.regionId === regionId) ??
+      unlocked[0];
+    if (!career) return;
+    this.selectedTrack.set(career.regionId);
+    this.activeCareerId.set(career.id);
     this.view.set('career');
     this.scrollToTop();
   }
@@ -273,7 +355,7 @@ export class GameStateService {
   resetAdventure(): void {
     if (
       typeof window !== 'undefined' &&
-      !window.confirm('確定要清除所有技能與任務進度，重生回星引學院入口嗎？')
+      !window.confirm('確定要清除所有技能與任務進度，重生回 TMU AI跨域星引學院入口嗎？')
     )
       return;
     this.view.set('intro');
@@ -287,6 +369,7 @@ export class GameStateService {
     this.lastRound.set(null);
     this.collectionOpen.set(false);
     this.settingsOpen.set(false);
+    this.shareStatus.set(null);
     this.newlyUnlockedCapabilities.set([]);
     this.dialogueIndex.set(0);
     if (typeof localStorage !== 'undefined') localStorage.removeItem(this.storageKey);
@@ -295,6 +378,7 @@ export class GameStateService {
 
   nextActionLabel(region: WorldRegion): string {
     if (region.kind === 'specialization') return '前往職業覺醒';
+    if (region.kind === 'enterprise-contract') return '返回企業委託所';
     const next = this.nextRegionFor(region);
     return next ? `直接前往：${next.name}` : '繼續旅程';
   }
@@ -304,17 +388,21 @@ export class GameStateService {
       'code-workshop': 'data-archive',
       'data-archive': 'ml-forest',
     };
-    let nextId = fixedNext[region.id];
-    if (region.id === 'ml-forest') {
-      const chosenIndex = this.choices()[region.id] ?? this.selectedOption() ?? 0;
-      nextId = ['vision-observatory', 'language-library', 'medical-observatory'][chosenIndex];
-    }
+    const nextId = fixedNext[region.id];
     return this.regions.find((candidate) => candidate.id === nextId) ?? null;
   }
 
   regionStatus(region: WorldRegion): 'completed' | 'open' | 'locked' {
+    if (region.kind === 'enterprise-hub') {
+      const contracts = region.contractRegionIds ?? [];
+      if (contracts.length && contracts.every((id) => this.completedRegions().includes(id)))
+        return 'completed';
+      return this.hasSpecialization() ? 'open' : 'locked';
+    }
     if (this.completedRegions().includes(region.id)) return 'completed';
-    if (region.kind === 'career') return this.hasSpecialization() ? 'open' : 'locked';
+    if (region.kind === 'career')
+      return this.hasSpecialization() && this.unlockedCareers().length ? 'open' : 'locked';
+    if (region.kind === 'enterprise-contract') return this.hasSpecialization() ? 'open' : 'locked';
     return region.requiresRegions.every((regionId) => this.completedRegions().includes(regionId))
       ? 'open'
       : 'locked';
@@ -322,9 +410,27 @@ export class GameStateService {
 
   regionStatusLabel(region: WorldRegion): string {
     const status = this.regionStatus(region);
+    if (region.kind === 'start') return '返回學院首頁';
+    if (region.kind === 'enterprise-hub') {
+      const completed = this.completedEnterpriseContracts().length;
+      if (status === 'completed')
+        return `${completed} / ${this.enterpriseContracts.length} 委託完成`;
+      if (status === 'open') return `${completed} / ${this.enterpriseContracts.length} 選修委託`;
+      return '完成任一專精後開放';
+    }
+    if (region.kind === 'enterprise-contract')
+      return status === 'completed' ? '委託完成' : status === 'open' ? '可接受委託' : '尚未開放';
     if (status === 'completed') return '探索完成';
-    if (status === 'open') return region.kind === 'career' ? '查看職涯' : '可接受任務';
+    if (status === 'open') {
+      if (this.isRecommendedRegion(region))
+        return region.kind === 'career' ? '前往職業覺醒' : '建議下一站';
+      return region.kind === 'career' ? '查看已覺醒職業' : '可接受任務';
+    }
     return '迷霧籠罩';
+  }
+
+  isRecommendedRegion(region: WorldRegion): boolean {
+    return this.regionStatus(region) === 'open' && this.recommendedRegionId() === region.id;
   }
 
   branchProgress(branchId: BranchId): number {
@@ -337,6 +443,13 @@ export class GameStateService {
       (skill) => skill.branch === branchId && this.acquiredSkillSet().has(skill.id),
     );
   }
+  collectionBranchSkills(branchId: BranchId): readonly SkillItem[] {
+    if (!this.previewRewards()) return this.branchSkills(branchId);
+    return this.skills.filter((skill) => skill.branch === branchId);
+  }
+  skillIsAcquired(skillId: string): boolean {
+    return this.acquiredSkillSet().has(skillId);
+  }
   skillById(skillId: string): SkillItem | null {
     return this.skills.find((skill) => skill.id === skillId) ?? null;
   }
@@ -347,8 +460,11 @@ export class GameStateService {
   capabilityById(capabilityId: string) {
     return this.capabilities.find((capability) => capability.id === capabilityId) ?? null;
   }
-  trackIsComplete(regionId: string): boolean {
-    return this.completedRegions().includes(regionId);
+  careerIsUnlocked(career: CareerProfile): boolean {
+    return this.unlockedCareers().some((profile) => profile.id === career.id);
+  }
+  careerForRegion(regionId: string): CareerProfile | null {
+    return this.careers.find((career) => career.regionId === regionId) ?? null;
   }
   canUndoRegion(regionId: string): boolean {
     return this.lastRound()?.regionId === regionId;
@@ -357,6 +473,101 @@ export class GameStateService {
     const region = this.regions.find((item) => item.id === regionId);
     const index = this.choices()[regionId];
     return region && typeof index === 'number' ? (region.options[index] ?? null) : null;
+  }
+  resultSkillIds(): readonly string[] {
+    const rewards = this.selectedQuestOption()?.rewards ?? [];
+    return [...rewards, ...this.acquiredSkills().filter((skillId) => !rewards.includes(skillId))];
+  }
+  isResultSkillReward(skillId: string): boolean {
+    return this.selectedQuestOption()?.rewards.includes(skillId) ?? false;
+  }
+  isResultSkillNew(skillId: string): boolean {
+    if (!this.isResultSkillReward(skillId)) return false;
+    const snapshot = this.lastRound();
+    if (!snapshot || snapshot.regionId !== this.activeRegionId()) return true;
+    return !snapshot.acquiredSkills.includes(skillId);
+  }
+  skillStatBonuses(skillId: string): readonly SkillStatBonus[] {
+    return SKILL_STAT_BONUSES[skillId] ?? [];
+  }
+  statAxisName(axisId: SkillStatBonus['axis']): string {
+    return this.statAxes.find((axis) => axis.id === axisId)?.shortName ?? axisId;
+  }
+  async shareAdventureProfile(): Promise<void> {
+    if (this.sharingProfile()) return;
+    this.sharingProfile.set(true);
+    this.shareStatus.set('正在製作冒險履歷圖…');
+    try {
+      const result = await this.profileShare.shareOrDownload(this.adventureShareProfile());
+      this.shareStatus.set(
+        result === 'shared'
+          ? '冒險履歷已送出！'
+          : result === 'downloaded'
+            ? '這個瀏覽器不支援圖片分享，已改為下載 PNG。'
+            : '已取消分享。',
+      );
+    } catch {
+      this.shareStatus.set('無法製作分享圖，請稍後再試。');
+    } finally {
+      this.sharingProfile.set(false);
+    }
+  }
+
+  downloadAdventureProfile(): void {
+    try {
+      this.profileShare.download(this.adventureShareProfile());
+      this.shareStatus.set('冒險履歷圖已下載為 PNG。');
+    } catch {
+      this.shareStatus.set('無法下載履歷圖，請稍後再試。');
+    }
+  }
+
+  private adventureShareProfile(): AdventureShareProfile {
+    const primaryCareer = this.activeCareer();
+    const orderedCareers = primaryCareer
+      ? [
+          primaryCareer,
+          ...this.unlockedCareers().filter((career) => career.id !== primaryCareer.id),
+        ]
+      : this.unlockedCareers();
+    return {
+      careers: orderedCareers.map((career) => ({
+        name: career.className,
+        realWorldTitle: career.realWorldTitle,
+      })),
+      skills: this.acquiredSkills()
+        .map((skillId) => this.skillById(skillId)?.name)
+        .filter((name): name is string => Boolean(name)),
+      stats: this.skillProfileScores(),
+      level: this.playerLevel(),
+    };
+  }
+
+  private capabilityRequirementsMet(
+    capability: Capability,
+    skillSet: ReadonlySet<string>,
+  ): boolean {
+    return (
+      capability.requires.every((skillId) => skillSet.has(skillId)) &&
+      (!capability.requiresAny?.length ||
+        capability.requiresAny.some((skillId) => skillSet.has(skillId)))
+    );
+  }
+
+  private careerRequirementsMet(
+    career: CareerProfile,
+    skillSet: ReadonlySet<string>,
+    completedRegions: ReadonlySet<string>,
+  ): boolean {
+    if (
+      ![career.regionId, ...(career.alternateRegionIds ?? [])].some((regionId) =>
+        completedRegions.has(regionId),
+      )
+    )
+      return false;
+    return [career.requiresSkills, ...(career.alternateSkillRecipes ?? [])].some((recipe) =>
+      recipe.every((skillId) => skillSet.has(skillId)),
+    );
   }
 
   private closeOverlays(): void {
@@ -392,7 +603,12 @@ export class GameStateService {
       if (typeof state.previewRewards === 'boolean') this.previewRewards.set(state.previewRewards);
       if (state.lastRound && validRegions.has(state.lastRound.regionId))
         this.lastRound.set(state.lastRound);
-      if (state.view === 'career' || state.view === 'map' || state.view === 'intro')
+      if (
+        state.view === 'career' ||
+        state.view === 'enterprise' ||
+        state.view === 'map' ||
+        state.view === 'intro'
+      )
         this.view.set(state.view);
     } catch {
       localStorage.removeItem(this.storageKey);

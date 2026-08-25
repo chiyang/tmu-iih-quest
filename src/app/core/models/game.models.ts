@@ -1,7 +1,34 @@
-export type GameView = 'intro' | 'map' | 'quest' | 'career';
+export type GameView = 'intro' | 'map' | 'enterprise' | 'quest' | 'career';
 export type BranchId = 'medical' | 'programming' | 'data' | 'ai' | 'product' | 'communication';
-export type RegionKind = 'start' | 'main' | 'specialization' | 'career';
+export type RegionKind =
+  'start' | 'main' | 'specialization' | 'enterprise-hub' | 'enterprise-contract' | 'career';
 export type QuestPhase = 'dialogue' | 'choice' | 'result';
+export type StatAxisId =
+  | 'programming'
+  | 'math'
+  | 'data'
+  | 'machine-learning'
+  | 'generative-ai'
+  | 'engineering'
+  | 'medical'
+  | 'research';
+
+export interface StatAxis {
+  readonly id: StatAxisId;
+  readonly name: string;
+  readonly shortName: string;
+  readonly description: string;
+  readonly accent: string;
+}
+
+export interface SkillStatBonus {
+  readonly axis: StatAxisId;
+  readonly points: number;
+}
+
+export interface PlayerStatScore extends StatAxis {
+  readonly value: number;
+}
 
 export interface SkillBranch {
   readonly id: BranchId;
@@ -26,6 +53,7 @@ export interface Capability {
   readonly name: string;
   readonly description: string;
   readonly requires: readonly string[];
+  readonly requiresAny?: readonly string[];
 }
 
 export interface DialogueLine {
@@ -37,7 +65,7 @@ export interface DialogueLine {
 }
 
 export interface QuestOption {
-  readonly archetype: string;
+  readonly direction: string;
   readonly icon: string;
   readonly label: string;
   readonly detail: string;
@@ -59,6 +87,8 @@ export interface WorldRegion {
   readonly question: string;
   readonly dialogue: readonly DialogueLine[];
   readonly options: readonly QuestOption[];
+  readonly visibleOnMap?: boolean;
+  readonly contractRegionIds?: readonly string[];
 }
 
 export interface CareerProfile {
@@ -67,12 +97,15 @@ export interface CareerProfile {
   readonly kicker: string;
   readonly className: string;
   readonly realWorldTitle: string;
+  readonly image: string;
   readonly description: string;
+  readonly requiresSkills: readonly string[];
+  readonly alternateSkillRecipes?: readonly (readonly string[])[];
+  readonly alternateRegionIds?: readonly string[];
   readonly formula: readonly string[];
   readonly careers: readonly string[];
   readonly research: readonly string[];
   readonly nextSkills: readonly string[];
-  readonly departments: readonly string[];
 }
 
 export interface RoundSnapshot {

@@ -10,7 +10,12 @@
       <div>
         <p class="panel-kicker">ARCANE CODEX</p>
         <h2>我的技能卡冊</h2>
-        <span>{{ game.acquiredSkills().length }} / {{ game.skills.length }} 張技能</span>
+        <span
+          >{{ game.acquiredSkills().length }} / {{ game.skills.length }} 張技能
+          @if (game.previewRewards()) {
+            ・技能提示中
+          }
+        </span>
       </div>
       <button type="button" (click)="game.closeCollection()" aria-label="關閉技能卡冊">×</button>
     </header>
@@ -24,17 +29,35 @@
           <div class="branch-cover">
             <img [src]="branch.image" [alt]="branch.name + '技能卡'" /><span
               ><small>{{ branch.shortName }}</small
-              ><strong>{{ branch.name }}</strong
-              ><b>{{ game.branchProgress(branch.id) }} 張</b></span
+              ><strong>{{ branch.name }}</strong>
+              <p>{{ branch.description }}</p>
+              <b
+                >{{ game.branchProgress(branch.id) }} 張
+                @if (game.previewRewards()) {
+                  ／共 {{ game.collectionBranchSkills(branch.id).length }} 張
+                }
+              </b></span
             >
           </div>
           <div class="shelf-skills">
-            @if (game.branchSkills(branch.id).length) {
-              @for (skill of game.branchSkills(branch.id); track skill.id) {
-                <div>
-                  <span>LV.{{ skill.tier }}</span
+            @if (game.collectionBranchSkills(branch.id).length) {
+              @for (skill of game.collectionBranchSkills(branch.id); track skill.id) {
+                <div
+                  class="shelf-skill-entry"
+                  [class.is-preview-locked]="!game.skillIsAcquired(skill.id)"
+                >
+                  <span>{{
+                    game.skillIsAcquired(skill.id)
+                      ? 'LV.' + skill.tier
+                      : '尚未取得・LV.' + skill.tier
+                  }}</span
                   ><strong>{{ skill.name }}</strong>
                   <p>{{ skill.canDo }}</p>
+                  <span class="skill-stat-chips compact-stat-chips">
+                    @for (bonus of game.skillStatBonuses(skill.id); track bonus.axis) {
+                      <i>+{{ bonus.points }} {{ game.statAxisName(bonus.axis) }}</i>
+                    }
+                  </span>
                 </div>
               }
             } @else {

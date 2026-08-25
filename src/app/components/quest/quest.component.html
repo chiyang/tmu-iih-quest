@@ -10,7 +10,6 @@
           ><strong>{{ region.name }}</strong
           ><span>{{ region.subtitle }}</span>
         </div>
-        <span class="no-wrong-badge">◇ 無錯誤答案</span>
       </div>
 
       @if (game.questPhase() === 'dialogue' && game.activeDialogue(); as line) {
@@ -71,7 +70,7 @@
                   <p class="quest-question">{{ region.question }}</p>
                   <p class="choice-guidance">不需要先知道正確答案，選擇你最想了解的方向。</p>
                 </article>
-                <div class="choice-grid">
+                <div class="choice-grid" [class.has-four-options]="region.options.length === 4">
                   @for (option of region.options; track option.label; let index = $index) {
                     <button
                       class="quest-choice"
@@ -80,7 +79,7 @@
                     >
                       <span class="choice-letter">{{ choiceLetters[index] }}</span
                       ><i>{{ option.icon }}</i
-                      ><small>{{ option.archetype }}</small
+                      ><small>{{ option.direction }}</small
                       ><strong>{{ option.label }}</strong>
                       <p>{{ option.detail }}</p>
                       <div class="reward-preview" [class.is-hidden]="!game.previewRewards()">
@@ -109,36 +108,94 @@
         <div class="result-scene">
           <article class="result-story">
             <p class="panel-kicker">QUEST RESOLVED・委託完成</p>
-            <span class="result-archetype"
+            <div class="result-question-recap">
+              <small>ORIGINAL QUEST・最初的委託</small>
+              <p>{{ region.question }}</p>
+            </div>
+            <span class="result-direction"
               ><i>{{ result.icon }}</i
-              >{{ result.archetype }}</span
+              >探索方向・{{ result.direction }}</span
             >
             <h1>{{ result.label }}</h1>
             <p>{{ result.consequence }}</p>
-            <blockquote>你選擇的不是「正確答案」，而是一種解決問題的視角。</blockquote>
+            <div class="learning-summary">
+              <small>LEARNING PATH・這條路需要的技能</small>
+              <strong>為了讓這個想像成為可行的智慧醫療方案，你努力學習了：</strong>
+              <div>
+                @for (skillId of result.rewards; track skillId) {
+                  @if (game.skillById(skillId); as skill) {
+                    @if (game.branchForSkill(skillId); as branch) {
+                      <span [style.--skill-accent]="branch.accent"
+                        ><i>✦</i>{{ skill.name }}<small>{{ branch.name }}</small></span
+                      >
+                    }
+                  }
+                }
+              </div>
+            </div>
+            <blockquote>
+              技能卡不是一次性獎品，而是幫你看見：「想完成這件事，還需要學會什麼？」
+            </blockquote>
           </article>
           <section class="reward-reveal">
             <header>
               <span>✦</span>
-              <div><small>SKILL ACQUIRED</small><strong>技能卡已收入卡冊</strong></div>
+              <div>
+                <small>YOUR SKILL HAND・冒險者手牌</small
+                ><strong>新技能已置頂，也保留你之前取得的卡片</strong>
+              </div>
+              <b>{{ game.acquiredSkills().length }} SKILLS</b>
             </header>
-            <div class="reward-cards">
-              @for (skillId of result.rewards; track skillId) {
+            <div class="result-skill-hand" aria-label="本關結算後的技能手牌">
+              @for (skillId of game.resultSkillIds(); track skillId) {
                 @if (game.skillById(skillId); as skill) {
                   @if (game.branchForSkill(skillId); as branch) {
-                    <article class="reward-card" [style.--skill-accent]="branch.accent">
+                    <article
+                      class="reward-card"
+                      [class.is-current]="game.isResultSkillReward(skillId)"
+                      [class.is-new]="game.isResultSkillNew(skillId)"
+                      [style.--skill-accent]="branch.accent"
+                    >
+                      <span class="skill-card-state">
+                        {{
+                          game.isResultSkillNew(skillId)
+                            ? '新技能'
+                            : game.isResultSkillReward(skillId)
+                              ? '本關鍛鍊'
+                              : '已持有'
+                        }}
+                      </span>
                       <img [src]="branch.image" [alt]="branch.name + '技能卡'" />
                       <div class="reward-card-copy">
-                        <small>{{ branch.shortName }}・TIER {{ skill.tier }}</small
+                        <small>{{ branch.name }}・TIER {{ skill.tier }}</small
                         ><strong>{{ skill.name }}</strong>
                         <p>{{ skill.description }}</p>
-                        <span>現在可以：{{ skill.canDo }}</span>
+                        <span class="skill-can-do">現在可以：{{ skill.canDo }}</span>
+                        <span class="skill-stat-chips">
+                          @for (bonus of game.skillStatBonuses(skillId); track bonus.axis) {
+                            <i>+{{ bonus.points }} {{ game.statAxisName(bonus.axis) }}</i>
+                          }
+                        </span>
                       </div>
                     </article>
                   }
                 }
               }
             </div>
+            <button class="open-card-codex" type="button" (click)="game.openCollection()">
+              點選查看完整技能卡冊 <span>➜</span>
+            </button>
+            @if (game.newlyUnlockedCareers().length) {
+              <div class="new-careers">
+                <small>CLASS AWAKENING・技能組合已產生專精共鳴</small>
+                <p>這些職業不是你事先選的，而是由已取得的技能組合而成。</p>
+                <div>
+                  @for (career of game.newlyUnlockedCareers(); track career.id) {
+                    <span>★ {{ career.className }}</span>
+                  }
+                </div>
+              </div>
+            }
             @if (game.newlyUnlockedCapabilities().length) {
               <div class="new-abilities">
                 <small>COMBINATION UNLOCKED・技能組合共鳴</small>
@@ -155,9 +212,25 @@
                 }
               </div>
             }
-            @if (game.nextRegion(); as next) {
+            @if (region.kind === 'specialization') {
               <div class="next-destination">
-                <small>NEXT DESTINATION</small
+                <small>NEW ROUTES OPEN・新的旅程已開放</small
+                ><span
+                  ><i>⌘</i><strong>直接覺醒職業，或前往星橋企業委託所</strong
+                  ><em>企業委託是選修支線；完成後可增加產品設計與跨域導入職階。</em></span
+                >
+              </div>
+            } @else if (region.id === 'ml-forest') {
+              <div class="next-destination">
+                <small>4 SPECIALIZATIONS OPEN・四個專精地區已開放</small
+                ><span
+                  ><i>✦</i><strong>接下來由你決定探索順序</strong
+                  ><em>生命訊號、照護語言、分子星脈與食養安全已同時解除迷霧。</em></span
+                >
+              </div>
+            } @else if (game.nextRegion(); as next) {
+              <div class="next-destination">
+                <small>NEXT DESTINATION・地圖將高亮下一站</small
                 ><span
                   ><i>{{ next.icon }}</i
                   ><strong>{{ next.name }}</strong
@@ -165,13 +238,27 @@
                 >
               </div>
             }
-            <div class="result-actions result-actions-four">
-              <button class="primary-cta direct-next" type="button" (click)="game.goToNextStage()">
-                {{ game.nextActionLabel(region) }} <span>➜</span>
-              </button>
-              <button class="map-return-button" type="button" (click)="game.goToMap()">
-                ⌖ 回到大地圖
-              </button>
+            <div class="result-actions result-actions-three">
+              @if (region.kind === 'enterprise-contract') {
+                <button
+                  class="primary-cta return-enterprise-primary"
+                  type="button"
+                  (click)="game.goToEnterpriseHub()"
+                >
+                  返回企業委託所 <span>➜</span>
+                </button>
+                <button class="contract-map-button" type="button" (click)="game.goToMap()">
+                  返回大地圖
+                </button>
+              } @else {
+                <button
+                  class="primary-cta return-map-primary"
+                  type="button"
+                  (click)="game.goToMap()"
+                >
+                  返回大地圖，選擇下一關 <span>➜</span>
+                </button>
+              }
               @if (game.canUndoRegion(region.id)) {
                 <button class="undo-button" type="button" (click)="game.undoLastRound()">
                   ↶ 返回重選
@@ -183,7 +270,7 @@
             </div>
             @if (game.canUndoRegion(region.id)) {
               <p class="undo-note">
-                只能撤回最新完成的這一局；直接完成下一關後，撤回機會會移到新的一局。
+                只能撤回最新完成的這一局；完成下一關後，撤回機會會移到新的一局。
               </p>
             }
           </section>

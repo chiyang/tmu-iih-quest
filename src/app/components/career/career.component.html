@@ -1,31 +1,94 @@
 @if (game.activeCareer(); as career) {
-  <section class="career-page">
+  <section class="career-page profile-page">
     <div class="career-sky" aria-hidden="true"></div>
-    <div class="career-heading">
+    <header class="profile-heading">
       <button type="button" (click)="game.goToMap()">‹ 返回能力大陸</button>
-      <p class="chapter-label"><span>CLASS AWAKENING</span> 專精職業覺醒</p>
-      <small>{{ career.kicker }}</small>
-      <h1>{{ career.className }}</h1>
-      <strong>{{ career.realWorldTitle }}</strong>
-      <p>{{ career.description }}</p>
-    </div>
-    <div class="career-tabs" aria-label="已解鎖專精職業">
-      @for (profile of game.careers; track profile.id) {
-        @if (game.trackIsComplete(profile.regionId)) {
+      <p class="chapter-label"><span>ADVENTURE PROFILE</span> 智慧醫療冒險履歷</p>
+      <h1>你的技能，已經形成一座職業星座。</h1>
+      <p>
+        這是本次冒險中的探索軌跡，不是能力或職涯測驗。你可能同時覺醒多個職階，也可以繼續收集技能，讓組合持續改變。
+      </p>
+      <div class="profile-actions">
+        <button
+          class="primary-cta share-profile-button"
+          type="button"
+          [disabled]="game.sharingProfile()"
+          (click)="game.shareAdventureProfile()"
+        >
+          {{ game.sharingProfile() ? '正在製作履歷圖…' : '分享履歷圖' }} <span>⇧</span>
+        </button>
+        <button
+          class="download-profile-button"
+          type="button"
+          [disabled]="game.sharingProfile()"
+          (click)="game.downloadAdventureProfile()"
+        >
+          下載履歷圖 <span>↓</span>
+        </button>
+        <span class="profile-total"
+          >{{ game.unlockedCareers().length }} 職階 ・ {{ game.acquiredSkills().length }} 技能</span
+        >
+      </div>
+      <p class="share-primary-reminder">
+        <strong>分享主職業：{{ career.className }}</strong>
+        @if (game.unlockedCareers().length > 1) {
+          <span>可在下方點選其他職業改為主角；分享圖仍會收錄其餘已覺醒職業。</span>
+        } @else {
+          <span>目前只有這個覺醒職業，分享圖不會顯示「其他已覺醒職業」區塊。</span>
+        }
+      </p>
+      @if (game.shareStatus()) {
+        <p class="share-status" aria-live="polite">{{ game.shareStatus() }}</p>
+      }
+    </header>
+
+    <section class="career-roster-section">
+      <div class="profile-section-heading">
+        <div>
+          <p class="panel-kicker">AWAKENED CLASSES・已覺醒專精職業</p>
+          <h2>你在這趟冒險中，覺醒了以下專精職業</h2>
+        </div>
+        <p>點選任一角色，可查看職涯說明並將它設為分享圖的主職業。</p>
+      </div>
+      <div class="career-gallery" [class.has-single-career]="game.unlockedCareers().length === 1">
+        @for (profile of game.unlockedCareers(); track profile.id) {
           <button
+            class="career-card"
             type="button"
-            [class.is-active]="game.activeCareer().id === profile.id"
+            [class.is-active]="career.id === profile.id"
+            [attr.aria-pressed]="career.id === profile.id"
             (click)="game.showCareer(profile.regionId, profile.id)"
           >
-            {{ profile.className }}
+            <img [src]="profile.image" [alt]="profile.className + '職業角色'" />
+            <span class="career-card-shade" aria-hidden="true"></span>
+            <span class="career-awakened">
+              {{ career.id === profile.id ? '★ 分享主職業' : '✦ 已覺醒' }}
+            </span>
+            <span class="career-card-copy">
+              <small>{{ profile.kicker }}</small>
+              <strong>{{ profile.className }}</strong>
+              <em>{{ profile.realWorldTitle }}</em>
+              <span>
+                @for (part of profile.formula; track part) {
+                  <i>{{ part }}</i>
+                }
+              </span>
+            </span>
           </button>
         }
-      }
-    </div>
-    <div class="career-content">
-      <article class="career-formula">
-        <p class="panel-kicker">YOUR BUILD・職業構成</p>
-        <div>
+      </div>
+    </section>
+
+    <section class="profile-dashboard">
+      <article class="career-detail-card">
+        <div class="career-detail-heading">
+          <span
+            ><small>SELECTED CLASS</small><strong>{{ career.className }}</strong></span
+          >
+          <em>{{ career.realWorldTitle }}</em>
+        </div>
+        <p>{{ career.description }}</p>
+        <div class="career-formula-inline">
           @for (part of career.formula; track $index; let last = $last) {
             <span>{{ part }}</span>
             @if (!last) {
@@ -33,46 +96,111 @@
             }
           }
         </div>
-        <p>這是一條可能的路，不是唯一終點。回到大地圖探索其他專精，技能仍會改變你的職業樣貌。</p>
-      </article>
-      <article>
-        <p class="panel-kicker">REAL-WORLD ROLES・可能職涯</p>
-        <ul>
-          @for (item of career.careers; track $index) {
-            <li><i>✦</i>{{ item }}</li>
-          }
-        </ul>
-      </article>
-      <article>
-        <p class="panel-kicker">RESEARCH FIELDS・研究方向</p>
-        <ul>
-          @for (item of career.research; track $index) {
-            <li><i>◇</i>{{ item }}</li>
-          }
-        </ul>
-      </article>
-      <article>
-        <p class="panel-kicker">NEXT SKILLS・下一步技能</p>
-        <div class="next-skill-list">
-          @for (item of career.nextSkills; track $index) {
-            <span>{{ item }}</span>
-          }
+        <div class="career-detail-grid">
+          <section>
+            <p class="panel-kicker">REAL-WORLD ROLES・可能職涯</p>
+            <ul>
+              @for (item of career.careers; track $index) {
+                <li><i>✦</i>{{ item }}</li>
+              }
+            </ul>
+          </section>
+          <section>
+            <p class="panel-kicker">RESEARCH FIELDS・研究方向</p>
+            <ul>
+              @for (item of career.research; track $index) {
+                <li><i>◇</i>{{ item }}</li>
+              }
+            </ul>
+          </section>
+          <section>
+            <p class="panel-kicker">NEXT SKILLS・下一步技能</p>
+            <div class="next-skill-list">
+              @for (item of career.nextSkills; track $index) {
+                <span>{{ item }}</span>
+              }
+            </div>
+          </section>
         </div>
       </article>
-      <article>
-        <p class="panel-kicker">TMU PATHS・北醫相關學系</p>
-        <ul>
-          @for (item of career.departments; track $index) {
-            <li><i>✚</i>{{ item }}</li>
+
+      <article class="stat-profile-card">
+        <div class="profile-section-heading compact-heading">
+          <div>
+            <p class="panel-kicker">ADVENTURE STATS・技能卡累積能力</p>
+            <h2>這趟冒險形成的能力光譜</h2>
+          </div>
+          <p>這裡統計整趟冒險收集的技能，不會因上方切換職業而改變。</p>
+        </div>
+        <div class="profile-stat-bars">
+          @for (stat of game.skillProfileScores(); track stat.id) {
+            <div class="profile-stat-row" [style.--stat-accent]="stat.accent">
+              <div>
+                <span
+                  ><strong>{{ stat.name }}</strong
+                  ><small>{{ stat.shortName }}</small></span
+                >
+                <b>{{ stat.value }}</b>
+              </div>
+              <span class="profile-stat-track"><i [style.width.%]="stat.value * 10"></i></span>
+              <p>{{ stat.description }}</p>
+            </div>
           }
-        </ul>
+        </div>
+        <p class="profile-disclaimer">
+          分數由已取得技能卡累積，只用來回顧這次冒險偏向，不代表真實能力高低。
+        </p>
       </article>
-    </div>
-    <section class="future-classes">
-      <div><small>CLASS CODEX</small><strong>智慧醫療八大職業</strong></div>
-      <span>精準醫療射手</span><span>長照健康補師</span><span>生理訊號偵測斥侯</span
-      ><span>自然語言詠唱法師</span><span>智慧模型工程師</span><span>健康安全守護者</span
-      ><span>分子標靶刺客</span><span>臨床決策劍士</span>
     </section>
+
+    <section class="profile-skill-collection">
+      <div class="profile-section-heading">
+        <div>
+          <p class="panel-kicker">SKILL COLLECTION・你帶回來的技能卡</p>
+          <h2>冒險途中收集了 {{ game.acquiredSkills().length }} 張技能卡</h2>
+        </div>
+        <button type="button" (click)="game.openCollection()">開啟完整技能卡冊 ➜</button>
+      </div>
+      <div class="profile-skill-grid">
+        @for (skillId of game.acquiredSkills(); track skillId) {
+          @if (game.skillById(skillId); as skill) {
+            @if (game.branchForSkill(skillId); as branch) {
+              <article class="profile-skill-card" [style.--skill-accent]="branch.accent">
+                <img [src]="branch.image" [alt]="skill.name + '技能卡'" />
+                <div>
+                  <small>{{ branch.name }}・TIER {{ skill.tier }}</small>
+                  <strong>{{ skill.name }}</strong>
+                  <p>{{ skill.description }}</p>
+                  <span class="skill-stat-chips">
+                    @for (bonus of game.skillStatBonuses(skill.id); track bonus.axis) {
+                      <i>+{{ bonus.points }} {{ game.statAxisName(bonus.axis) }}</i>
+                    }
+                  </span>
+                </div>
+              </article>
+            }
+          }
+        }
+      </div>
+    </section>
+
+    <footer class="profile-footer">
+      <p>你還可以回到大地圖探索其他專精區，讓新技能改寫這份冒險履歷。</p>
+      <div class="profile-footer-actions">
+        <button class="primary-cta" type="button" (click)="game.shareAdventureProfile()">
+          分享履歷圖 <span>⇧</span>
+        </button>
+        <button
+          class="download-profile-button"
+          type="button"
+          (click)="game.downloadAdventureProfile()"
+        >
+          下載履歷圖 <span>↓</span>
+        </button>
+        <button class="profile-rebirth-button" type="button" (click)="game.resetAdventure()">
+          ♢ 重生回原點
+        </button>
+      </div>
+    </footer>
   </section>
 }
