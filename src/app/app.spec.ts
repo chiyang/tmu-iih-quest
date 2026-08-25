@@ -689,9 +689,12 @@ describe('App', () => {
       '分享主職業：自然語言詠唱法師',
     );
 
+    const scrollTo = vi.mocked(window.scrollTo);
+    scrollTo.mockClear();
     const careerCards = page.querySelectorAll<HTMLButtonElement>('.career-gallery .career-card');
     careerCards[2].click();
     fixture.detectChanges();
+    expect(scrollTo).not.toHaveBeenCalled();
     expect(careerCards[2].getAttribute('aria-pressed')).toBe('true');
     expect(page.querySelector('.share-primary-reminder')?.textContent).toContain(
       '分享主職業：食品營養安全守護者',

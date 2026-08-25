@@ -346,10 +346,11 @@ export class GameStateService {
       unlocked.find((profile) => profile.regionId === regionId) ??
       unlocked[0];
     if (!career) return;
+    const enteringCareerPage = this.view() !== 'career';
     this.selectedTrack.set(career.regionId);
     this.activeCareerId.set(career.id);
     this.view.set('career');
-    this.scrollToTop();
+    if (enteringCareerPage) this.scrollToTop();
   }
 
   resetAdventure(): void {
