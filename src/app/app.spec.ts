@@ -52,13 +52,19 @@ describe('App', () => {
     expect(page.textContent).toContain('技能組合職業');
     expect(page.textContent).toContain('微生物菌相');
     expect(page.textContent).toContain('質譜');
-    expect(page.querySelector('.academy-provider small')?.textContent).toBe('單位');
+    expect(page.querySelectorAll('.compass-grid article')).toHaveLength(9);
+    expect(page.textContent).toContain('智慧醫療產品鍊金');
+    expect(page.textContent).toContain('跨域協作與產業導入');
+    expect(page.textContent).toContain('選修支線');
+    expect(page.textContent).toContain('不影響職業覺醒');
+    expect(page.querySelector('.academy-provider span')?.textContent).toBe('單位');
     expect(page.querySelector('.academy-provider')?.textContent).toContain(
       '臺北醫學大學 智慧醫療跨領域學士學位學程',
     );
     expect(page.querySelector('.academy-disclaimer')?.textContent).toContain(
       '無法涵蓋所有專業、研究方向與職涯可能',
     );
+    expect(page.querySelector('.academy-disclaimer strong')?.textContent).toBe('內容聲明');
     expect(page.querySelectorAll('.class-roster button')).toHaveLength(11);
     expect(page.textContent).toContain('精準醫療射手');
     expect(page.textContent).toContain('醫療照護視覺獵人');
@@ -125,12 +131,13 @@ describe('App', () => {
 
     expect(page.querySelector('.result-scene')?.textContent).toContain('衛教轉譯');
     expect(page.querySelector('.result-scene')?.textContent).toContain('智慧長照觀察');
+    expect(page.querySelector('.result-scene')?.textContent).toContain('數位工具運用');
     expect(page.querySelector('.result-scene')?.textContent).toContain('這條路需要的技能');
     expect(page.querySelector('.result-question-recap')?.textContent).toContain(
       '你想從哪一種智慧醫療任務開始',
     );
-    expect(page.querySelectorAll('.result-skill-hand .reward-card')).toHaveLength(2);
-    expect(page.querySelectorAll('.result-skill-hand .reward-card.is-new')).toHaveLength(2);
+    expect(page.querySelectorAll('.result-skill-hand .reward-card')).toHaveLength(3);
+    expect(page.querySelectorAll('.result-skill-hand .reward-card.is-new')).toHaveLength(3);
     expect(page.querySelector('.return-map-primary')?.textContent).toContain('返回大地圖');
     expect(page.querySelector('.undo-button')).toBeTruthy();
     expect(page.querySelector('.rebirth-button')).toBeTruthy();
@@ -171,15 +178,17 @@ describe('App', () => {
     fixture.detectChanges();
 
     const cards = page.querySelectorAll<HTMLElement>('.result-skill-hand .reward-card');
-    expect(cards).toHaveLength(6);
+    expect(cards).toHaveLength(7);
     expect(cards[0].classList).toContain('is-new');
     expect(cards[1].classList).toContain('is-new');
     expect(cards[2].classList).toContain('is-new');
     expect(cards[3].classList).toContain('is-new');
-    expect(cards[1].textContent).toContain('數位工具運用');
-    expect(cards[2].textContent).toContain('資料處理');
+    expect(cards[1].textContent).toContain('資料處理');
+    expect(cards[2].textContent).toContain('資料清理');
+    expect(cards[3].textContent).toContain('流程設計與自動化');
     expect(cards[4].textContent).toContain('衛教轉譯');
     expect(cards[5].textContent).toContain('智慧長照觀察');
+    expect(cards[6].textContent).toContain('數位工具運用');
   });
 
   it('should undo only the latest completed round', async () => {
@@ -296,6 +305,30 @@ describe('App', () => {
     expect(page.querySelector('.collection-drawer')).toBeFalsy();
   });
 
+  it('should reset progress from the map and remain on the map', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const game = TestBed.inject(GameStateService);
+    game.acquiredSkills.set(['digital-tools', 'workflow']);
+    game.completedRegions.set(['prompt-academy', 'code-workshop', 'data-archive']);
+    game.choices.set({ 'code-workshop': 0, 'data-archive': 0 });
+    game.goToMap();
+    fixture.detectChanges();
+
+    click(fixture, '.map-rebirth-button');
+    const page = fixture.nativeElement as HTMLElement;
+
+    expect(game.view()).toBe('map');
+    expect(game.acquiredSkills()).toEqual([]);
+    expect(game.completedRegions()).toEqual(['prompt-academy']);
+    expect(game.choices()).toEqual({});
+    expect(game.recommendedRegionId()).toBe('code-workshop');
+    expect(page.querySelector('app-world-map')).toBeTruthy();
+    expect(page.querySelector('.region-node.is-recommended')?.textContent).toContain(
+      '智慧醫療迎新站',
+    );
+  });
+
   it('should replace the empty first-skill placeholder with adventure progress', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
@@ -362,6 +395,7 @@ describe('App', () => {
       'pose-action-analysis',
       'multisensor-care',
       'long-term-care',
+      'python',
     ]);
 
     game.acquiredSkills.set(activityQuest.rewards);
@@ -442,11 +476,53 @@ describe('App', () => {
       game.skills.filter((skill) => !rewardedSkills.has(skill.id)).map((skill) => skill.name),
     ).toEqual([]);
 
+    const welcome = game.regions.find((region) => region.id === 'code-workshop')!;
     const archive = game.regions.find((region) => region.id === 'data-archive')!;
-    expect(archive.options.every((option) => option.rewards.includes('digital-tools'))).toBe(true);
+    expect(welcome.options.every((option) => option.rewards.includes('digital-tools'))).toBe(true);
+    expect(archive.options.every((option) => option.rewards.includes('workflow'))).toBe(true);
+    expect(archive.options.every((option) => !option.rewards.includes('digital-tools'))).toBe(true);
     expect(archive.options.every((option) => !option.rewards.includes('python'))).toBe(true);
+    expect(
+      game.skills.filter((skill) => skill.branch === 'programming').map((skill) => skill.name),
+    ).toEqual([
+      '數位工具運用',
+      '程式設計',
+      '流程設計與自動化',
+      '程式測試與驗證',
+      'RAG 知識檢索',
+      'Agent 工作流',
+    ]);
+    expect(game.skills.find((skill) => skill.id === 'python')?.description).toContain('Python');
     expect(archive.options[0].rewards).toContain('data-pipeline');
     expect(archive.options[3].rewards).toContain('multiomics');
+
+    const modelForest = game.regions.find((region) => region.id === 'ml-forest')!;
+    expect(
+      modelForest.dialogue.some((line) => line.text.includes('程式設計會帶來更細緻的控制力')),
+    ).toBe(true);
+    expect(
+      modelForest.options
+        .filter((option) => option.rewards.includes('machine-learning'))
+        .every((option) => option.rewards.includes('python')),
+    ).toBe(true);
+    expect(
+      modelForest.options.find((option) => option.direction === '生成與溝通')?.rewards,
+    ).toContain('rag');
+    expect(
+      game.regions
+        .find((region) => region.id === 'vision-observatory')
+        ?.options.every((option) => option.rewards.includes('python')),
+    ).toBe(true);
+    expect(
+      game.regions
+        .find((region) => region.id === 'medical-observatory')
+        ?.options.every((option) => option.rewards.includes('python')),
+    ).toBe(true);
+    expect(
+      game.regions
+        .find((region) => region.id === 'medical-observatory')
+        ?.options.every((option) => option.rewards.includes('workflow')),
+    ).toBe(true);
     expect(
       game.regions
         .find((region) => region.id === 'vision-observatory')
@@ -477,16 +553,44 @@ describe('App', () => {
         'product-outcome-validation',
         'python',
         'workflow',
+        'agent-workflow',
       ]),
     );
     expect(
       game.regions
         .find((region) => region.id === 'alliance-deployment-commission')
         ?.options.find((option) => option.direction === '小規模試行')?.rewards,
+    ).toEqual(expect.arrayContaining(['workflow', 'agent-workflow']));
+
+    expect(
+      game.careers.find((career) => career.id === 'precision-archer')?.requiresSkills,
     ).toContain('workflow');
+    expect(
+      game.careers.find((career) => career.id === 'molecular-assassin')?.requiresSkills,
+    ).toContain('workflow');
+    expect(
+      game.capabilities.find((capability) => capability.id === 'precision-research')?.requires,
+    ).toContain('workflow');
+    expect(
+      game.capabilities.find((capability) => capability.id === 'molecular-discovery')?.requires,
+    ).toContain('workflow');
+
+    const ragDirections = game.regions.flatMap((region) =>
+      region.options
+        .filter((option) => option.rewards.includes('rag'))
+        .map((option) => option.direction),
+    );
+    expect(ragDirections).toEqual(['生成與溝通', '可信知識']);
+
+    const agentDirections = game.regions.flatMap((region) =>
+      region.options
+        .filter((option) => option.rewards.includes('agent-workflow'))
+        .map((option) => option.direction),
+    );
+    expect(agentDirections).toEqual(['可信知識', '程式服務', '小規模試行']);
   });
 
-  it('should support tool-based automation and agents without requiring Python', () => {
+  it('should support tool-based automation and agents without requiring programming', () => {
     const game = TestBed.inject(GameStateService);
 
     game.acquiredSkills.set(['digital-tools', 'workflow']);
@@ -498,6 +602,40 @@ describe('App', () => {
 
     game.acquiredSkills.set(['python', 'workflow']);
     expect(game.unlockedCapabilities().map((capability) => capability.id)).toContain('automation');
+  });
+
+  it('should require programming for the model engineer and restore new rewards to saved runs', () => {
+    localStorage.setItem(
+      'ai-academy-adventure-v6',
+      JSON.stringify({
+        view: 'career',
+        acquiredSkills: ['machine-learning', 'model-training'],
+        completedRegions: [
+          'prompt-academy',
+          'code-workshop',
+          'data-archive',
+          'ml-forest',
+          'vision-observatory',
+        ],
+        choices: {
+          'code-workshop': 0,
+          'data-archive': 0,
+          'ml-forest': 0,
+          'vision-observatory': 0,
+        },
+        selectedTrack: 'vision-observatory',
+        previewRewards: false,
+        lastRound: null,
+      }),
+    );
+
+    const game = TestBed.inject(GameStateService);
+    expect(game.acquiredSkills()).toEqual(expect.arrayContaining(['digital-tools', 'workflow']));
+    expect(game.acquiredSkills()).toContain('python');
+    expect(game.unlockedCareers().map((career) => career.id)).toContain('model-engineer');
+
+    game.acquiredSkills.set(['machine-learning', 'model-training']);
+    expect(game.unlockedCareers().map((career) => career.id)).not.toContain('model-engineer');
   });
 
   it('should require completing a matching specialty before awakening a career', () => {

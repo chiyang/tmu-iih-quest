@@ -113,6 +113,18 @@
           查看完整技能卡冊 <span>➜</span>
         </button>
       </article>
+      <article class="last-choice-card is-empty">
+        <p class="panel-kicker">REBIRTH・重新開始</p>
+        <strong>清除本次冒險進度</strong>
+        <p>保留在大地圖，所有技能與選擇歸零，從智慧醫療迎新站重新出發。</p>
+        <button
+          class="undo-button rebirth-button map-rebirth-button"
+          type="button"
+          (click)="game.resetAdventure('map')"
+        >
+          ♢ 重生回原點
+        </button>
+      </article>
     </aside>
   </div>
 </section>

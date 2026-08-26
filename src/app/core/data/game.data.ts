@@ -19,11 +19,11 @@ export const BRANCHES: readonly SkillBranch[] = [
   },
   {
     id: 'programming',
-    name: '數位工具與程式',
+    name: '數位工具與程式設計',
     shortName: 'CODE',
     image: 'assets/skills/programming.jpg',
     accent: '#67a9ff',
-    description: '用合適的工具、流程或程式，把想法變成可重複執行的數位法術。',
+    description: '先選對工具，再用程式設計、API、測試與自動化，把想法變成可重複執行的系統。',
   },
   {
     id: 'data',
@@ -62,9 +62,9 @@ export const BRANCHES: readonly SkillBranch[] = [
 export const STAT_AXES: readonly StatAxis[] = [
   {
     id: 'programming',
-    name: '數位實作與自動化',
+    name: '程式設計與數位實作',
     shortName: 'CODE',
-    description: '運用數位工具、流程或程式，把想法變成可執行、可檢查的步驟。',
+    description: '能選擇現成工具，也能用 Python 等程式語言控制資料、模型與自動化流程。',
     accent: '#67a9ff',
   },
   {
@@ -248,6 +248,7 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
     { axis: 'generative-ai', points: 3 },
     { axis: 'engineering', points: 2 },
     { axis: 'data', points: 1 },
+    { axis: 'programming', points: 1 },
   ],
   'knowledge-design': [
     { axis: 'data', points: 2 },
@@ -398,16 +399,18 @@ export const SKILLS: readonly SkillItem[] = [
     name: '數位工具運用',
     branch: 'programming',
     tier: 1,
-    description: '依任務選擇試算表、視覺化、AutoML、生成式 AI 或低程式工具。',
+    description:
+      '依任務選擇試算表、視覺化、AutoML、生成式 AI 或低程式工具，也知道何時需要進一步寫程式。',
     canDo: '不必先寫程式，也能建立可檢查的分析原型',
   },
   {
     id: 'python',
-    name: 'Python',
+    name: '程式設計',
     branch: 'programming',
     tier: 1,
-    description: '用 Python 撰寫可重複的資料處理、分析或模型程式。',
-    canDo: '自行控制資料處理與程式化實驗',
+    description:
+      '理解變數、條件、函式與資料結構，並用 Python 撰寫可重複的資料處理、分析或模型程式。',
+    canDo: '自行控制資料處理、模型實驗與系統邏輯',
   },
   {
     id: 'workflow',
@@ -483,11 +486,11 @@ export const SKILLS: readonly SkillItem[] = [
   },
   {
     id: 'validation-code',
-    name: '驗證程式',
+    name: '程式測試與驗證',
     branch: 'programming',
     tier: 2,
-    description: '用程式重複檢查資料品質、模型指標與異常。',
-    canDo: '建立資料與模型的驗證守門員',
+    description: '用自動測試與可追蹤的程式規則，重複檢查資料品質、模型指標與異常。',
+    canDo: '讓資料流程與模型更新後仍能被可靠檢查',
   },
   {
     id: 'machine-learning',
@@ -590,8 +593,8 @@ export const SKILLS: readonly SkillItem[] = [
     name: 'RAG 知識檢索',
     branch: 'programming',
     tier: 3,
-    description: '先搜尋可信資料，再交給模型回答。',
-    canDo: '建立有來源的知識助手',
+    description: '用工具或程式串接文件檢索、來源引用與語言模型回答。',
+    canDo: '建立能沿來源查證的知識助手',
   },
   {
     id: 'knowledge-design',
@@ -614,8 +617,8 @@ export const SKILLS: readonly SkillItem[] = [
     name: 'Agent 工作流',
     branch: 'programming',
     tier: 3,
-    description: '讓多個工具依任務協作。',
-    canDo: '建立能執行任務的 AI Agent',
+    description: '安排模型、工具與 API 分工，並加入錯誤處理、人工確認與停止條件。',
+    canDo: '建立可追蹤、可介入的任務型 AI Agent',
   },
   {
     id: 'clinical-context',
@@ -872,13 +875,13 @@ export const CAPABILITIES: readonly Capability[] = [
     id: 'precision-research',
     name: '分子星圖解析術',
     description: '整合多體學與臨床資料，探索個人差異與治療線索。',
-    requires: ['multiomics', 'precision-medicine'],
+    requires: ['multiomics', 'precision-medicine', 'workflow'],
   },
   {
     id: 'molecular-discovery',
     name: '分子鍊金探索術',
     description: '從多體學線索走向疾病機制、藥物標的與候選分子。',
-    requires: ['multiomics', 'drug-discovery'],
+    requires: ['multiomics', 'drug-discovery', 'workflow'],
   },
   {
     id: 'safe-health-ai',
@@ -965,7 +968,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '探索衛教、護理紀錄、智慧長照與遠距支持，讓資訊和照護更容易抵達需要的人。',
         consequence:
           '你走進以人為中心的照護道路。AI 可以協助整理與解釋資訊、觀察長期變化，但仍要保留專業確認、資料同意與真人互動。',
-        rewards: ['health-education', 'long-term-care'],
+        rewards: ['health-education', 'long-term-care', 'digital-tools'],
       },
       {
         direction: '臨床探索',
@@ -974,7 +977,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '探索 MRI、病理影像、腦波、心電圖與生命徵象，理解 AI 如何提供篩檢或診斷線索。',
         consequence:
           '你走進影像與波形的診斷支援道路。AI 能辨認大量資料中的模式，但不是自動醫師；資料品質、族群差異與臨床驗證都很重要。',
-        rewards: ['biomedical-data', 'data-literacy'],
+        rewards: ['biomedical-data', 'data-literacy', 'digital-tools'],
       },
       {
         direction: '分子探索',
@@ -984,7 +987,7 @@ export const REGIONS: readonly WorldRegion[] = [
           '探索基因體、菌相，以及質譜量測的蛋白質與代謝物，協助疾病分群、尋找藥物標的或設計候選分子。',
         consequence:
           '你走進分子醫學與藥物研究道路。AI 能縮小龐大的搜尋空間、提出候選線索，但分子機制、實驗結果與臨床安全仍需要長期驗證。',
-        rewards: ['multiomics', 'drug-discovery'],
+        rewards: ['multiomics', 'drug-discovery', 'digital-tools'],
       },
       {
         direction: '食養探索',
@@ -994,7 +997,7 @@ export const REGIONS: readonly WorldRegion[] = [
           '探索食品檢驗與來源追蹤、營養成分、腸道菌相和族群差異，理解 AI 如何協助風險監測與健康促進。',
         consequence:
           '你走進食品營養與公共健康道路。AI 能整理檢驗、供應鏈與飲食資料，但風險警報和營養建議都需要可靠證據、專業判讀與公平性檢查。',
-        rewards: ['food-nutrition-literacy', 'data-literacy'],
+        rewards: ['food-nutrition-literacy', 'data-literacy', 'digital-tools'],
       },
     ],
   },
@@ -1029,7 +1032,7 @@ export const REGIONS: readonly WorldRegion[] = [
         role: '健康資料典藏官',
         portrait: 'assets/characters/iris-archivist.png',
         tone: 'encouraging',
-        text: '在訓練模型以前，先學會問「資料從哪裡來、代表什麼、缺少了誰」。你想先走進哪一座資料書架？',
+        text: '在訓練模型以前，先學會問「資料從哪裡來、代表什麼、缺少了誰」。接著把輸入、整理、檢查與輸出排成可重複、可追蹤的流程；它可以由數位工具完成，也可以進一步寫成程式。你想先走進哪一座資料書架？',
       },
     ],
     question: '不同任務會追蹤不同線索，你想先學會看懂哪一類健康資料？',
@@ -1041,7 +1044,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '理解診斷、用藥、檢驗與護理紀錄，也辨認缺漏、縮寫和不同書寫習慣。',
         consequence:
           '你發現病歷並不是完美答案，而是照護過程留下的紀錄。你選擇合適的試算表、資料庫或資料整理工具，將欄位定義、格式轉換與缺漏檢查變成可重複步驟，也保留臨床脈絡與人工確認。',
-        rewards: ['biomedical-data', 'digital-tools', 'data-pipeline', 'data-cleaning'],
+        rewards: ['biomedical-data', 'data-pipeline', 'data-cleaning', 'workflow'],
       },
       {
         direction: '影像與波形',
@@ -1050,7 +1053,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '比較 MRI 的空間影像，以及腦波、心電圖、血氧等隨時間變化的波形。',
         consequence:
           '你學會區分「看身體結構的影像」和「看身體活動的訊號」，也用影像檢視與視覺化工具比較不同格式。兩者都能用 AI 找模式，但前處理、標註和驗證方式並不相同。',
-        rewards: ['biomedical-data', 'digital-tools', 'visualization', 'storytelling'],
+        rewards: ['biomedical-data', 'visualization', 'storytelling', 'workflow'],
       },
       {
         direction: '動作與環境感測',
@@ -1060,7 +1063,7 @@ export const REGIONS: readonly WorldRegion[] = [
           '比較一般攝影機、深度影像、人體骨架座標，以及加速度計、陀螺儀與環境感測器留下的活動資料。',
         consequence:
           '你發現照護資料不只來自病歷與儀器，也可能來自日常活動。你用感測平台與資料工具對齊時間與格式，同時注意原始影像、骨架座標和穿戴訊號各自的隱私、遮蔽、雜訊與使用限制。',
-        rewards: ['biomedical-data', 'digital-tools', 'multisensor-care', 'long-term-care'],
+        rewards: ['biomedical-data', 'multisensor-care', 'long-term-care', 'workflow'],
       },
       {
         direction: '分子星圖',
@@ -1069,7 +1072,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '認識定序與質譜如何形成不同分子資料，並與臨床資料一起研究個人差異。',
         consequence:
           '分子資料像有成千上萬座標的星圖。你用生物資訊與統計工具整理高維資料；AI 能協助分群與找線索，但樣本較少、變項很多，結果尤其需要外部驗證。',
-        rewards: ['biomedical-data', 'digital-tools', 'multiomics', 'statistics'],
+        rewards: ['biomedical-data', 'multiomics', 'statistics', 'workflow'],
       },
     ],
   },
@@ -1097,7 +1100,7 @@ export const REGIONS: readonly WorldRegion[] = [
         role: '醫療 AI 方法導師',
         portrait: 'assets/characters/rowan-warden.png',
         tone: 'thoughtful',
-        text: 'AI 的輸出可以是分類、風險分數、文字摘要或新線索；它是否有用，取決於資料品質、問題定義、測試方式，以及人能否安全地使用結果。',
+        text: 'AI 的輸出可以是分類、風險分數、文字摘要或新線索；它是否有用，取決於資料品質、問題定義、測試方式，以及人能否安全地使用結果。現成工具適合先探索概念；若要自行處理資料、建立與反覆驗證模型，程式設計會帶來更細緻的控制力。',
       },
       {
         speaker: '森林守望者 Rowan',
@@ -1117,7 +1120,7 @@ export const REGIONS: readonly WorldRegion[] = [
           '從影像、波形、照護紀錄或分子資料中找出模式；也能用影像分割、姿態估測與動作辨識理解人物和環境。',
         consequence:
           '你學會先定義什麼叫「相似」與「異常」，再讓模型從範例中學習。分割可以區分人物與環境，骨架可以描述姿態，連續影格才能形成動作；這些結果都不等於自動得到醫療結論。四個專精地區已同時開放。',
-        rewards: ['machine-learning', 'model-training'],
+        rewards: ['machine-learning', 'model-training', 'python'],
       },
       {
         direction: '預測與預警',
@@ -1126,7 +1129,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '利用過去案例估計之後可能發生的狀況，例如健康惡化、住院風險或需要優先關注的訊號。',
         consequence:
           '你讓 AI 成為「提醒者」，不是「預言家」。風險分數只代表在特定資料下的可能性，還必須用新的族群與真實情境檢查誤報、漏報和偏差。四個專精地區已同時開放。',
-        rewards: ['machine-learning', 'model-validation'],
+        rewards: ['machine-learning', 'model-validation', 'python'],
       },
       {
         direction: '生成與溝通',
@@ -1135,8 +1138,8 @@ export const REGIONS: readonly WorldRegion[] = [
         detail:
           '將複雜紀錄整理成摘要、初稿或衛教說明，並清楚標示來源、不確定性與需要人工確認的地方。',
         consequence:
-          '你學會用提示詞說清任務與限制，再把模型產生的內容改成適合不同讀者的說明。生成得流暢不代表正確，醫療內容仍需可查證來源與專業覆核。四個專精地區已同時開放。',
-        rewards: ['prompt', 'knowledge-design'],
+          '你學會用提示詞說清任務與限制；需要可靠知識時，再用 RAG 先檢索可信資料並附上來源。生成得流暢不代表正確，醫療內容仍需專業覆核。四個專精地區已同時開放。',
+        rewards: ['prompt', 'knowledge-design', 'rag'],
       },
       {
         direction: '整合與決策支援',
@@ -1193,7 +1196,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '由醫療專家定義要辨識的結構或異常，並檢查影像品質與標註差異。',
         consequence:
           '你理解了影像 AI 的答案不是自然出現，而是來自專業定義、去識別化、品質檢查與一致標註。',
-        rewards: ['computer-vision', 'image-labeling', 'vision-prototype'],
+        rewards: ['computer-vision', 'image-labeling', 'vision-prototype', 'python'],
       },
       {
         direction: '生理訊號',
@@ -1201,7 +1204,7 @@ export const REGIONS: readonly WorldRegion[] = [
         label: '先看懂波形如何隨時間變化',
         detail: '學習去除雜訊、切分片段，再從腦波或心電訊號中探索重複模式。',
         consequence: '你看見生理訊號 AI 不只是畫一條線，而是處理時間、頻率、個體差異與量測雜訊。',
-        rewards: ['biosignal-ai', 'statistics'],
+        rewards: ['biosignal-ai', 'statistics', 'python'],
       },
       {
         direction: '姿態與活動',
@@ -1211,7 +1214,7 @@ export const REGIONS: readonly WorldRegion[] = [
           '從攝影機、深度影像或穿戴感測取得活動線索，分辨坐下、起身、行走、近跌倒與跌倒事件。',
         consequence:
           '你先用分割找出人物，再用關節骨架描述姿態，最後從連續動作觀察活動變化。系統只負責提醒，仍需處理遮蔽、誤報、隱私與照護人員確認。',
-        rewards: ['pose-action-analysis', 'multisensor-care', 'long-term-care'],
+        rewards: ['pose-action-analysis', 'multisensor-care', 'long-term-care', 'python'],
       },
       {
         direction: '臨床驗證',
@@ -1225,6 +1228,7 @@ export const REGIONS: readonly WorldRegion[] = [
           'validation-code',
           'medical-safety',
           'decision-communication',
+          'python',
         ],
       },
     ],
@@ -1337,7 +1341,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '整合多體學與臨床特徵，探索看似相同的疾病是否存在不同分子群組。',
         consequence:
           '你把 AI 當成提出研究假說的工具：先找群組，再由生物實驗、獨立資料與臨床知識確認它們是否真的有意義。',
-        rewards: ['multiomics', 'statistics'],
+        rewards: ['multiomics', 'statistics', 'python', 'workflow'],
       },
       {
         direction: '療效預測',
@@ -1346,7 +1350,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '結合分子特徵與治療結果，建立可驗證的預測，再檢查不同族群表現。',
         consequence:
           '你理解精準醫療模型需要前瞻研究與外部驗證，不能只在原資料上找到關聯就直接決定個人治療。',
-        rewards: ['precision-medicine', 'model-validation'],
+        rewards: ['precision-medicine', 'model-validation', 'python', 'workflow'],
       },
       {
         direction: '藥物探索',
@@ -1355,7 +1359,14 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '從基因、蛋白質與代謝路徑中探索疾病機制、藥物標的或重新定位的可能性。',
         consequence:
           '你沿分子網路找到值得實驗驗證的候選線索，也明白 AI 能加速篩選，真正的分子機制仍需要跨領域研究反覆證實。',
-        rewards: ['precision-medicine', 'drug-discovery', 'domain-translation', 'clinical-spec'],
+        rewards: [
+          'precision-medicine',
+          'drug-discovery',
+          'domain-translation',
+          'clinical-spec',
+          'python',
+          'workflow',
+        ],
       },
       {
         direction: '人體菌相',
@@ -1364,7 +1375,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '比較微生物群落組成與功能線索，再結合飲食、用藥、代謝與臨床資料研究個體差異。',
         consequence:
           '你發現菌相會隨飲食、藥物、環境與時間改變。AI 能協助整理群落與找關聯，但單次樣本不能直接證明疾病原因或決定個人治療。',
-        rewards: ['microbiome-analysis', 'multiomics', 'statistics'],
+        rewards: ['microbiome-analysis', 'multiomics', 'statistics', 'python', 'workflow'],
       },
     ],
   },
@@ -1411,7 +1422,12 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '串起供應來源、冷鏈感測、抽驗結果與事件通報，找出需要食品專家優先調查的線索。',
         consequence:
           '你建立的是風險偵測器，不是自動定罪器。模型可以排序可疑訊號，但危害是否成立仍需要採樣、檢驗、追溯與風險評估。',
-        rewards: ['food-nutrition-literacy', 'food-safety-ai', 'food-evidence-validation'],
+        rewards: [
+          'food-nutrition-literacy',
+          'food-safety-ai',
+          'food-evidence-validation',
+          'python',
+        ],
       },
       {
         direction: '營養資料',
@@ -1491,7 +1507,7 @@ export const REGIONS: readonly WorldRegion[] = [
         role: '智慧醫療產品與導入顧問',
         portrait: 'assets/characters/aria-enterprise-mentor-v2.png',
         tone: 'encouraging',
-        text: '四種原型都可以起步：用介面測試人如何理解 AI、用感測器實作軟硬體串接、從整體照護服務重新設計分工，或明確選擇 Python 與 API 的程式實作路線。',
+        text: '四種原型都可以起步：用介面測試人如何理解 AI、用感測器實作軟硬體串接、從整體照護服務重新設計分工，或明確選擇程式設計與 API 的實作路線，例如使用 Python 建立分析服務。',
       },
     ],
     question: '一項有潛力的健康 AI 研究，要變成真的能被使用的產品，你想先打造哪種原型？',
@@ -1521,6 +1537,7 @@ export const REGIONS: readonly WorldRegion[] = [
           'health-product-strategy',
           'product-outcome-validation',
           'smart-medtech-prototype',
+          'python',
         ],
       },
       {
@@ -1535,12 +1552,18 @@ export const REGIONS: readonly WorldRegion[] = [
       {
         direction: '程式服務',
         icon: '{ }',
-        label: '用 Python 與 API 建立可重複執行的分析服務',
+        label: '用程式設計與 API 建立可重複執行的分析服務',
         detail:
-          '把資料處理、模型呼叫、錯誤處理與人工覆核寫成可測試的服務，理解程式化帶來的控制力與維護責任。',
+          '例如使用 Python，把資料處理、模型呼叫、錯誤處理與人工覆核寫成可測試的服務，理解程式化帶來的控制力與維護責任。',
         consequence:
-          '你明確選擇了程式實作路線。Python 讓你能控制資料處理、模型與 API 串接，但它不是自動化的唯一方法；真正可用的服務仍需要清楚流程、錯誤處理、版本管理與人工覆核。',
-        rewards: ['health-product-strategy', 'product-outcome-validation', 'python', 'workflow'],
+          '你明確選擇了程式實作路線。Python 讓你能控制資料處理、模型與 API 串接；需要依任務協調多種工具時，也可以加入 Agent 工作流。Agent 不代替固定安全規則，真正可用的服務仍需要錯誤處理、版本管理與人工覆核。',
+        rewards: [
+          'health-product-strategy',
+          'product-outcome-validation',
+          'python',
+          'workflow',
+          'agent-workflow',
+        ],
       },
     ],
   },
@@ -1596,12 +1619,13 @@ export const REGIONS: readonly WorldRegion[] = [
         label: '先在有明確邊界的情境測試並收集回饋',
         detail: '說清誰可以使用、哪些結果必須覆核、發生問題怎麼停止，再比較試行前後的差異。',
         consequence:
-          '你選擇不直接全面上線，而是先把資料輸入、模型呼叫、人工覆核與結果記錄串成可停止、可追蹤的自動化流程，再以小規模試行檢查模型表現、工作負擔、使用者理解與意外結果。',
+          '你選擇不直接全面上線，而是先把資料輸入、模型呼叫、人工覆核與結果記錄串成可停止、可追蹤的自動化流程。若試行包含多個工具與例外處理，可以用 Agent 工作流協調步驟；固定的安全規則仍保持明確，再比較模型表現、工作負擔與意外結果。',
         rewards: [
           'implementation-collaboration',
           'stakeholder-facilitation',
           'model-validation',
           'workflow',
+          'agent-workflow',
         ],
       },
       {
@@ -1646,12 +1670,7 @@ export const CAREERS: readonly CareerProfile[] = [
     alternateSkillRecipes: [['pose-action-analysis', 'multisensor-care']],
     formula: ['影像理解', '姿態活動', '安全驗證'],
     careers: ['醫療影像 AI 研究助理', '照護視覺 AI 研發人才', '電腦視覺工程師'],
-    research: [
-      '醫療影像分類與分割',
-      '病灶與器官標註',
-      '姿態與行動辨識',
-      '居家跌倒偵測與風險警示',
-    ],
+    research: ['醫療影像分類與分割', '病灶與器官標註', '姿態與行動辨識', '居家跌倒偵測與風險警示'],
     nextSkills: ['影像處理', '時間序列行動辨識', '隱私保護設計', '模型可解釋性'],
   },
   {
@@ -1667,7 +1686,7 @@ export const CAREERS: readonly CareerProfile[] = [
     formula: ['生理訊號', '時間序列', '異常偵測'],
     careers: ['生醫訊號研究員', '醫療 AI 工程師', '數位健康研發人才'],
     research: ['EEG／ECG 分析', '呼吸與睡眠訊號', '穿戴感測', '遠距健康監測'],
-    nextSkills: ['Python', '數位訊號處理', '時間序列', '生物統計'],
+    nextSkills: ['程式設計（Python）', '數位訊號處理', '時間序列', '生物統計'],
   },
   {
     id: 'model-engineer',
@@ -1678,12 +1697,12 @@ export const CAREERS: readonly CareerProfile[] = [
     image: 'assets/careers/model-engineer.jpg',
     description:
       '你把影像、訊號與臨床資料轉成可訓練、可測試的模型。工程師不只追求高分，也會管理資料版本、模型邊界與上線後的變化。',
-    requiresSkills: ['machine-learning', 'model-training'],
-    alternateSkillRecipes: [['machine-learning', 'model-validation']],
-    formula: ['資料工程', '模型訓練', '持續驗證'],
+    requiresSkills: ['machine-learning', 'model-training', 'python'],
+    alternateSkillRecipes: [['machine-learning', 'model-validation', 'python']],
+    formula: ['程式設計', '模型訓練', '持續驗證'],
     careers: ['機器學習工程師', '醫療影像 AI 工程師', 'MLOps 工程師'],
     research: ['深度學習', '多模態模型', '模型泛化', '醫療 AI 部署'],
-    nextSkills: ['Python', 'PyTorch', '資料工程', 'MLOps'],
+    nextSkills: ['程式設計（Python）', 'PyTorch', '資料工程', 'MLOps'],
   },
   {
     id: 'clinical-swordsman',
@@ -1742,12 +1761,12 @@ export const CAREERS: readonly CareerProfile[] = [
     image: 'assets/careers/precision-archer.jpg',
     description:
       '你整合基因體、菌相、質譜、多體學與臨床資料，瞄準疾病亞型、生物標記與療效差異。射手不是保證找出唯一正確的個人答案，而是用多層證據，逐步縮小更適合不同病人或族群的預防、診斷與治療方向。',
-    requiresSkills: ['multiomics', 'statistics'],
+    requiresSkills: ['multiomics', 'statistics', 'workflow'],
     alternateSkillRecipes: [
-      ['precision-medicine', 'model-validation'],
-      ['microbiome-analysis', 'multiomics'],
+      ['precision-medicine', 'model-validation', 'workflow'],
+      ['microbiome-analysis', 'multiomics', 'workflow'],
     ],
-    formula: ['多體學與菌相', '病人分群', '療效驗證'],
+    formula: ['多體學與菌相', '分析流程', '療效驗證'],
     careers: ['生物資訊工程師', '精準醫療資料科學家', '計算生物研究助理'],
     research: ['多體學整合', '菌相與代謝體', '生物標記', '療效與預後預測'],
     nextSkills: ['R／Python', '生物資訊', '質譜資料分析', '統計學習'],
@@ -1761,8 +1780,8 @@ export const CAREERS: readonly CareerProfile[] = [
     image: 'assets/careers/molecular-assassin.jpg',
     description:
       '你沿著基因、蛋白質與代謝路徑鎖定疾病弱點，再用 AI 協助篩選、生成或重新定位候選藥物。刺客的每次出手都必須接受實驗與安全驗證。',
-    requiresSkills: ['drug-discovery', 'precision-medicine'],
-    formula: ['分子機制', '藥物標的', '候選分子'],
+    requiresSkills: ['drug-discovery', 'precision-medicine', 'workflow'],
+    formula: ['分子機制', '流程自動化', '候選分子'],
     careers: ['AI 藥物研發人才', '計算藥物設計研究員', '藥物資訊分析人才'],
     research: ['標的發現', 'AI 蛋白質設計', '虛擬篩選', '藥物重新定位'],
     nextSkills: ['藥理學', '計算化學', '分子生物學', '生成式模型'],

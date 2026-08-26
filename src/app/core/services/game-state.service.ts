@@ -353,13 +353,17 @@ export class GameStateService {
     if (enteringCareerPage) this.scrollToTop();
   }
 
-  resetAdventure(): void {
+  resetAdventure(destination: 'intro' | 'map' = 'intro'): void {
     if (
       typeof window !== 'undefined' &&
-      !window.confirm('確定要清除所有技能與任務進度，重生回 TMU AI跨域星引學院入口嗎？')
+      !window.confirm(
+        destination === 'map'
+          ? '確定要清除所有技能與任務進度，並從大地圖的智慧醫療迎新站重新開始嗎？'
+          : '確定要清除所有技能與任務進度，重生回 TMU AI跨域星引學院入口嗎？',
+      )
     )
       return;
-    this.view.set('intro');
+    this.view.set(destination);
     this.acquiredSkills.set([]);
     this.completedRegions.set(['prompt-academy']);
     this.choices.set({});
@@ -582,20 +586,26 @@ export class GameStateService {
     if (!raw) return;
     try {
       const state = JSON.parse(raw) as Partial<SavedGameState>;
-      const validSkills = new Set(this.skills.map((skill) => skill.id));
       const validRegions = new Set(this.regions.map((region) => region.id));
-      if (Array.isArray(state.acquiredSkills))
-        this.acquiredSkills.set([
-          ...new Set(state.acquiredSkills.filter((id) => validSkills.has(id))),
-        ]);
-      if (Array.isArray(state.completedRegions))
-        this.completedRegions.set([
-          ...new Set([
-            'prompt-academy',
-            ...state.completedRegions.filter((id) => validRegions.has(id)),
-          ]),
-        ]);
-      if (state.choices && typeof state.choices === 'object') this.choices.set(state.choices);
+      const restoredCompletedRegions = [
+        ...new Set([
+          'prompt-academy',
+          ...(Array.isArray(state.completedRegions)
+            ? state.completedRegions.filter((id) => validRegions.has(id))
+            : []),
+        ]),
+      ];
+      const restoredChoices =
+        state.choices && typeof state.choices === 'object' ? state.choices : {};
+      this.completedRegions.set(restoredCompletedRegions);
+      this.choices.set(restoredChoices);
+      this.acquiredSkills.set(
+        this.restoreRewardSkills(
+          Array.isArray(state.acquiredSkills) ? state.acquiredSkills : [],
+          restoredCompletedRegions,
+          restoredChoices,
+        ),
+      );
       if (
         typeof state.selectedTrack === 'string' &&
         this.careers.some((career) => career.regionId === state.selectedTrack)
@@ -603,7 +613,14 @@ export class GameStateService {
         this.selectedTrack.set(state.selectedTrack);
       if (typeof state.previewRewards === 'boolean') this.previewRewards.set(state.previewRewards);
       if (state.lastRound && validRegions.has(state.lastRound.regionId))
-        this.lastRound.set(state.lastRound);
+        this.lastRound.set({
+          ...state.lastRound,
+          acquiredSkills: this.restoreRewardSkills(
+            state.lastRound.acquiredSkills,
+            state.lastRound.completedRegions,
+            state.lastRound.choices,
+          ),
+        });
       if (
         state.view === 'career' ||
         state.view === 'enterprise' ||
@@ -614,6 +631,25 @@ export class GameStateService {
     } catch {
       localStorage.removeItem(this.storageKey);
     }
+  }
+
+  private restoreRewardSkills(
+    skillIds: readonly string[],
+    completedRegionIds: readonly string[],
+    choices: Readonly<Record<string, number>>,
+  ): readonly string[] {
+    const validSkills = new Set(this.skills.map((skill) => skill.id));
+    const restoredSkills = new Set(skillIds.filter((id) => validSkills.has(id)));
+    const completedRegions = new Set(completedRegionIds);
+    for (const region of this.regions) {
+      if (!completedRegions.has(region.id)) continue;
+      const optionIndex = choices[region.id];
+      if (!Number.isInteger(optionIndex)) continue;
+      for (const reward of region.options[optionIndex]?.rewards ?? []) {
+        if (validSkills.has(reward)) restoredSkills.add(reward);
+      }
+    }
+    return [...restoredSkills];
   }
 
   private scrollToTop(): void {
