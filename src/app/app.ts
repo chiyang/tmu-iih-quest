@@ -7,6 +7,7 @@ import { QuestComponent } from './components/quest/quest.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { SkillCollectionComponent } from './components/skill-collection/skill-collection.component';
 import { WorldMapComponent } from './components/world-map/world-map.component';
+import { AssetPreloadService } from './core/services/asset-preload.service';
 import { GameStateService } from './core/services/game-state.service';
 
 @Component({
@@ -28,4 +29,9 @@ import { GameStateService } from './core/services/game-state.service';
 })
 export class App {
   readonly game = inject(GameStateService);
+  private readonly assetPreloader = inject(AssetPreloadService);
+
+  constructor() {
+    this.assetPreloader.start();
+  }
 }

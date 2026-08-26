@@ -982,7 +982,7 @@ export const REGIONS: readonly WorldRegion[] = [
         role: '智慧醫療探索導師',
         portrait: 'assets/characters/mira-engineer.png',
         tone: 'encouraging',
-        text: '你現在還不需要會寫程式，也不必先選定職業。先從照護、診斷、食品營養或分子研究選一扇門，看看每條道路需要什麼資料與專業。',
+        text: '你現在還不需要很會寫程式，也不必先選定職業。先從照護、診斷、食品營養或分子研究選一扇門，看看每條道路需要什麼資料與專業。',
       },
     ],
     question: '你想從哪一種智慧醫療任務開始，展開第一段探索？',

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { App } from './app';
+import { AssetPreloadService } from './core/services/asset-preload.service';
 import { GameStateService } from './core/services/game-state.service';
 import { ProfileShareService } from './core/services/profile-share.service';
 
@@ -35,6 +36,61 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
     expect(fixture.nativeElement.querySelector('app-game-header')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('app-intro')).toBeTruthy();
+  });
+
+  it('should preload scenes and NPCs before career images while the browser is idle', () => {
+    type TestIdleDeadline = { didTimeout: boolean; timeRemaining: () => number };
+    const idleCallbacks: Array<(deadline: TestIdleDeadline) => void> = [];
+    const requestedImages: string[] = [];
+
+    vi.stubGlobal(
+      'requestIdleCallback',
+      (callback: (deadline: TestIdleDeadline) => void): number => {
+        idleCallbacks.push(callback);
+        return idleCallbacks.length;
+      },
+    );
+    vi.stubGlobal(
+      'Image',
+      class {
+        decoding = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        set src(value: string) {
+          requestedImages.push(value);
+          this.onload?.();
+        }
+      },
+    );
+
+    try {
+      TestBed.inject(AssetPreloadService).start();
+      while (idleCallbacks.length) {
+        idleCallbacks.shift()?.({ didTimeout: false, timeRemaining: () => 50 });
+      }
+
+      const firstCareer = requestedImages.findIndex((url) => url.includes('/assets/careers/'));
+      const lastSceneOrNpc = requestedImages.reduce(
+        (lastIndex, url, index) =>
+          url.includes('/assets/scenes/') || url.includes('/assets/characters/')
+            ? index
+            : lastIndex,
+        -1,
+      );
+      expect(firstCareer).toBeGreaterThan(lastSceneOrNpc);
+      expect(requestedImages.some((url) => url.endsWith('/assets/scenes/ml-forest.png'))).toBe(
+        true,
+      );
+      expect(
+        requestedImages.some((url) => url.endsWith('/assets/characters/mira-engineer.png')),
+      ).toBe(true);
+      expect(
+        requestedImages.some((url) => url.endsWith('/assets/careers/model-engineer.jpg')),
+      ).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('should introduce the health AI adventure and let players preview named classes', async () => {
@@ -112,7 +168,11 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const page = reachFirstChoice(fixture);
+    const welcomeQuest = TestBed.inject(GameStateService).regions.find(
+      (region) => region.id === 'code-workshop',
+    );
 
+    expect(welcomeQuest?.dialogue[2].text).toContain('還不需要很會寫程式');
     const choices = page.querySelectorAll<HTMLButtonElement>('.quest-choice');
     expect(choices).toHaveLength(4);
     expect(page.querySelector('.choice-speaker-portrait img')?.getAttribute('src')).toContain(
