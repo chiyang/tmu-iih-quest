@@ -311,10 +311,20 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
     { axis: 'medical', points: 2 },
     { axis: 'math', points: 1 },
   ],
+  'precision-stratification': [
+    { axis: 'medical', points: 2 },
+    { axis: 'data', points: 2 },
+    { axis: 'research', points: 2 },
+  ],
   'drug-discovery': [
     { axis: 'medical', points: 2 },
     { axis: 'research', points: 2 },
     { axis: 'machine-learning', points: 1 },
+  ],
+  'molecular-targeting': [
+    { axis: 'medical', points: 2 },
+    { axis: 'research', points: 2 },
+    { axis: 'machine-learning', points: 2 },
   ],
   'precision-medicine': [
     { axis: 'medical', points: 3 },
@@ -701,12 +711,28 @@ export const SKILLS: readonly SkillItem[] = [
     canDo: '探索跨分子層次與質譜峰值中的生物線索',
   },
   {
+    id: 'precision-stratification',
+    name: '精準分層設計',
+    branch: 'medical',
+    tier: 3,
+    description: '結合分子、臨床與療效證據，設計能被驗證的疾病或族群分層方式。',
+    canDo: '探索疾病亞型、療效差異與個人化醫療方向',
+  },
+  {
     id: 'drug-discovery',
     name: 'AI 藥物探索',
     branch: 'ai',
     tier: 1,
     description: '理解 AI 如何協助尋找標的、篩選或設計候選分子。',
     canDo: '認識新藥研究的計算方法與驗證流程',
+  },
+  {
+    id: 'molecular-targeting',
+    name: '分子標靶策略',
+    branch: 'ai',
+    tier: 3,
+    description: '沿著基因、蛋白質與代謝路徑鎖定可供實驗檢查的疾病弱點。',
+    canDo: '規劃標的發現、候選分子篩選與實驗驗證',
   },
   {
     id: 'precision-medicine',
@@ -1341,7 +1367,7 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '整合多體學與臨床特徵，探索看似相同的疾病是否存在不同分子群組。',
         consequence:
           '你把 AI 當成提出研究假說的工具：先找群組，再由生物實驗、獨立資料與臨床知識確認它們是否真的有意義。',
-        rewards: ['multiomics', 'statistics', 'python', 'workflow'],
+        rewards: ['multiomics', 'statistics', 'precision-stratification', 'python', 'workflow'],
       },
       {
         direction: '療效預測',
@@ -1350,7 +1376,13 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '結合分子特徵與治療結果，建立可驗證的預測，再檢查不同族群表現。',
         consequence:
           '你理解精準醫療模型需要前瞻研究與外部驗證，不能只在原資料上找到關聯就直接決定個人治療。',
-        rewards: ['precision-medicine', 'model-validation', 'python', 'workflow'],
+        rewards: [
+          'precision-medicine',
+          'model-validation',
+          'precision-stratification',
+          'python',
+          'workflow',
+        ],
       },
       {
         direction: '藥物探索',
@@ -1362,6 +1394,7 @@ export const REGIONS: readonly WorldRegion[] = [
         rewards: [
           'precision-medicine',
           'drug-discovery',
+          'molecular-targeting',
           'domain-translation',
           'clinical-spec',
           'python',
@@ -1375,7 +1408,14 @@ export const REGIONS: readonly WorldRegion[] = [
         detail: '比較微生物群落組成與功能線索，再結合飲食、用藥、代謝與臨床資料研究個體差異。',
         consequence:
           '你發現菌相會隨飲食、藥物、環境與時間改變。AI 能協助整理群落與找關聯，但單次樣本不能直接證明疾病原因或決定個人治療。',
-        rewards: ['microbiome-analysis', 'multiomics', 'statistics', 'python', 'workflow'],
+        rewards: [
+          'microbiome-analysis',
+          'multiomics',
+          'statistics',
+          'precision-stratification',
+          'python',
+          'workflow',
+        ],
       },
     ],
   },
@@ -1761,10 +1801,11 @@ export const CAREERS: readonly CareerProfile[] = [
     image: 'assets/careers/precision-archer.jpg',
     description:
       '你整合基因體、菌相、質譜、多體學與臨床資料，瞄準疾病亞型、生物標記與療效差異。射手不是保證找出唯一正確的個人答案，而是用多層證據，逐步縮小更適合不同病人或族群的預防、診斷與治療方向。',
-    requiresSkills: ['multiomics', 'statistics', 'workflow'],
+    requiresSkills: ['multiomics', 'statistics', 'workflow', 'precision-stratification'],
     alternateSkillRecipes: [
-      ['precision-medicine', 'model-validation', 'workflow'],
-      ['microbiome-analysis', 'multiomics', 'workflow'],
+      ['precision-medicine', 'model-validation', 'workflow', 'precision-stratification'],
+      ['microbiome-analysis', 'multiomics', 'workflow', 'precision-stratification'],
+      ['multiomics', 'statistics', 'model-validation', 'precision-medicine', 'workflow'],
     ],
     formula: ['多體學與菌相', '分析流程', '療效驗證'],
     careers: ['生物資訊工程師', '精準醫療資料科學家', '計算生物研究助理'],
@@ -1780,7 +1821,17 @@ export const CAREERS: readonly CareerProfile[] = [
     image: 'assets/careers/molecular-assassin.jpg',
     description:
       '你沿著基因、蛋白質與代謝路徑鎖定疾病弱點，再用 AI 協助篩選、生成或重新定位候選藥物。刺客的每次出手都必須接受實驗與安全驗證。',
-    requiresSkills: ['drug-discovery', 'precision-medicine', 'workflow'],
+    requiresSkills: ['drug-discovery', 'precision-medicine', 'workflow', 'molecular-targeting'],
+    alternateSkillRecipes: [
+      [
+        'drug-discovery',
+        'precision-medicine',
+        'multiomics',
+        'statistics',
+        'model-validation',
+        'workflow',
+      ],
+    ],
     formula: ['分子機制', '流程自動化', '候選分子'],
     careers: ['AI 藥物研發人才', '計算藥物設計研究員', '藥物資訊分析人才'],
     research: ['標的發現', 'AI 蛋白質設計', '虛擬篩選', '藥物重新定位'],

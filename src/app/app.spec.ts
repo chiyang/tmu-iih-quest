@@ -423,6 +423,42 @@ describe('App', () => {
     expect(watchtower?.dialogue.map((line) => line.text).join('')).toContain('質譜');
   });
 
+  it('should distinguish the molecular careers while allowing deliberate dual awakening', () => {
+    const game = TestBed.inject(GameStateService);
+    const station = game.regions.find((region) => region.id === 'medical-observatory')!;
+    const sharedSkills = ['workflow', 'python'];
+    game.completedRegions.set(['medical-observatory']);
+
+    station.options.forEach((option, index) => {
+      game.acquiredSkills.set([...new Set([...sharedSkills, ...option.rewards])]);
+      const careerIds = game.unlockedCareers().map((career) => career.id);
+
+      if (index === 2) {
+        expect(careerIds).toContain('molecular-assassin');
+        expect(careerIds).not.toContain('precision-archer');
+      } else {
+        expect(careerIds).toContain('precision-archer');
+        expect(careerIds).not.toContain('molecular-assassin');
+      }
+    });
+
+    const molecularIntroduction = game.regions.find((region) => region.id === 'code-workshop')!
+      .options[2];
+    const molecularData = game.regions.find((region) => region.id === 'data-archive')!.options[3];
+    const treatmentResponse = station.options[1];
+    game.acquiredSkills.set([
+      ...new Set([
+        ...molecularIntroduction.rewards,
+        ...molecularData.rewards,
+        ...treatmentResponse.rewards,
+      ]),
+    ]);
+
+    const dualCareerIds = game.unlockedCareers().map((career) => career.id);
+    expect(dualCareerIds).toContain('precision-archer');
+    expect(dualCareerIds).toContain('molecular-assassin');
+  });
+
   it('should label the recommended career gate as the awakening destination', () => {
     const game = TestBed.inject(GameStateService);
     const careerGate = game.regions.find((region) => region.id === 'career-citadel');
@@ -644,15 +680,11 @@ describe('App', () => {
 
     game.acquiredSkills.set(['machine-learning', 'model-validation', 'python']);
     expect(game.unlockedCareers().map((career) => career.id)).toContain('model-engineer');
-    expect(
-      game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value,
-    ).toBe(9);
+    expect(game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value).toBe(9);
 
     game.acquiredSkills.set(['machine-learning', 'model-training', 'python']);
     expect(game.unlockedCareers().map((career) => career.id)).toContain('model-engineer');
-    expect(
-      game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value,
-    ).toBe(8);
+    expect(game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value).toBe(8);
   });
 
   it('should require completing a matching specialty before awakening a career', () => {
