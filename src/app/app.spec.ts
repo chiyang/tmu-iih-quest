@@ -109,7 +109,7 @@ describe('App', () => {
     expect(page.textContent).toContain('微生物菌相');
     expect(page.textContent).toContain('質譜');
     expect(page.querySelectorAll('.compass-grid article')).toHaveLength(9);
-    expect(page.textContent).toContain('智慧醫療產品鍊金');
+    expect(page.textContent).toContain('智慧醫療產品落地');
     expect(page.textContent).toContain('跨域協作與產業導入');
     expect(page.textContent).toContain('選修支線');
     expect(page.textContent).toContain('不影響職業覺醒');
