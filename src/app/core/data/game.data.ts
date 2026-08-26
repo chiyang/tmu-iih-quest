@@ -190,7 +190,7 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
     { axis: 'research', points: 1 },
   ],
   'machine-learning': [
-    { axis: 'machine-learning', points: 3 },
+    { axis: 'machine-learning', points: 5 },
     { axis: 'math', points: 1 },
     { axis: 'data', points: 1 },
   ],
@@ -200,7 +200,7 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
   ],
   'model-validation': [
     { axis: 'research', points: 3 },
-    { axis: 'machine-learning', points: 1 },
+    { axis: 'machine-learning', points: 4 },
     { axis: 'medical', points: 1 },
   ],
   'ai-ethics': [

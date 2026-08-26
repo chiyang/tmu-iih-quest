@@ -638,6 +638,23 @@ describe('App', () => {
     expect(game.unlockedCareers().map((career) => career.id)).not.toContain('model-engineer');
   });
 
+  it('should require a strong machine-learning profile for the model engineer', () => {
+    const game = TestBed.inject(GameStateService);
+    game.completedRegions.set(['vision-observatory']);
+
+    game.acquiredSkills.set(['machine-learning', 'model-validation', 'python']);
+    expect(game.unlockedCareers().map((career) => career.id)).toContain('model-engineer');
+    expect(
+      game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value,
+    ).toBe(9);
+
+    game.acquiredSkills.set(['machine-learning', 'model-training', 'python']);
+    expect(game.unlockedCareers().map((career) => career.id)).toContain('model-engineer');
+    expect(
+      game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value,
+    ).toBe(8);
+  });
+
   it('should require completing a matching specialty before awakening a career', () => {
     const game = TestBed.inject(GameStateService);
     game.acquiredSkills.set(['rag', 'knowledge-design']);
