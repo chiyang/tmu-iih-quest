@@ -1150,7 +1150,7 @@ export const REGIONS: readonly WorldRegion[] = [
       },
       {
         direction: '預測與預警',
-        icon: '⌛',
+        icon: '⌁',
         label: '估計未來風險，提早發出提醒',
         detail: '利用過去案例估計之後可能發生的狀況，例如健康惡化、住院風險或需要優先關注的訊號。',
         consequence:

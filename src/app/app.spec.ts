@@ -203,6 +203,16 @@ describe('App', () => {
     expect(page.querySelector('.rebirth-button')).toBeTruthy();
   });
 
+  it('should use a monochrome forecast sigil for prediction and early warning', () => {
+    const game = TestBed.inject(GameStateService);
+    const methodForest = game.regions.find((region) => region.id === 'ml-forest');
+    const predictionOption = methodForest?.options.find(
+      (option) => option.direction === '預測與預警',
+    );
+
+    expect(predictionOption?.icon).toBe('⌁');
+  });
+
   it('should return to the map and highlight the next quest', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
