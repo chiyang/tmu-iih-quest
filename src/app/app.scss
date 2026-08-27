@@ -3436,8 +3436,7 @@ button:focus-visible {
   gap: 7px;
 }
 .setting-row p,
-.reset-zone p,
-.rule-card p {
+.reset-zone p {
   margin: 0;
   color: #8f99b0;
   font-size: 11px;
@@ -3507,24 +3506,6 @@ button:focus-visible {
 }
 .toggle.is-on {
   flex-direction: row-reverse;
-}
-.rule-card {
-  display: flex;
-  gap: 15px;
-  margin: 18px 28px;
-  padding: 16px;
-  border: 1px solid rgba(169, 135, 255, 0.25);
-  border-radius: 7px;
-  background: rgba(88, 60, 142, 0.11);
-}
-.rule-card > i {
-  color: var(--violet);
-  font-size: 22px;
-  font-style: normal;
-}
-.rule-card > div {
-  display: grid;
-  gap: 6px;
 }
 .reset-zone {
   border: 0;
