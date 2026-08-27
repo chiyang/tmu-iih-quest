@@ -30,6 +30,15 @@ describe('App', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
+  function chooseVisibleOption(fixture: ComponentFixture<App>, index: number): void {
+    const page = fixture.nativeElement as HTMLElement;
+    const choice = page.querySelectorAll<HTMLButtonElement>('.quest-choice')[index];
+    expect(choice, `Expected quest choice ${index}`).toBeTruthy();
+    choice.click();
+    fixture.detectChanges();
+    click(fixture, '.confirm-quest-choice');
+  }
+
   it('should create the component-based app', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
@@ -188,6 +197,9 @@ describe('App', () => {
 
     choices[0].click();
     fixture.detectChanges();
+    expect(choices[0].classList).toContain('is-selected');
+    expect(choices[0].textContent).not.toContain('採取這個行動');
+    click(fixture, '.confirm-quest-choice');
 
     expect(page.querySelector('.result-scene')?.textContent).toContain('衛教轉譯');
     expect(page.querySelector('.result-scene')?.textContent).toContain('智慧長照觀察');
@@ -217,8 +229,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const page = reachFirstChoice(fixture);
-    page.querySelectorAll<HTMLButtonElement>('.quest-choice')[1].click();
-    fixture.detectChanges();
+    chooseVisibleOption(fixture, 1);
 
     click(fixture, '.return-map-primary');
 
@@ -239,13 +250,11 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const page = reachFirstChoice(fixture);
-    page.querySelectorAll<HTMLButtonElement>('.quest-choice')[0].click();
-    fixture.detectChanges();
+    chooseVisibleOption(fixture, 0);
     click(fixture, '.return-map-primary');
     click(fixture, '.region-node.is-recommended');
     click(fixture, '.skip-dialogue');
-    page.querySelectorAll<HTMLButtonElement>('.quest-choice')[0].click();
-    fixture.detectChanges();
+    chooseVisibleOption(fixture, 0);
 
     const cards = page.querySelectorAll<HTMLElement>('.result-skill-hand .reward-card');
     expect(cards).toHaveLength(7);
@@ -265,8 +274,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const page = reachFirstChoice(fixture);
-    page.querySelectorAll<HTMLButtonElement>('.quest-choice')[0].click();
-    fixture.detectChanges();
+    chooseVisibleOption(fixture, 0);
     click(fixture, '.result-actions .undo-button');
 
     expect(page.querySelector('.dialogue-box')).toBeTruthy();
@@ -289,6 +297,49 @@ describe('App', () => {
 
     expect(page.querySelector('.reward-preview')?.textContent).toContain('衛教轉譯');
     expect(page.querySelector('.reward-preview')?.textContent).not.toContain('選擇後揭曉技能');
+  });
+
+  it('should let settings raise the quest selection limit and combine selected rewards', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const game = TestBed.inject(GameStateService);
+    const page = fixture.nativeElement as HTMLElement;
+
+    expect(game.maxQuestSelections()).toBe(1);
+    click(fixture, '.header-actions button:last-child');
+    const limitButtons = page.querySelectorAll<HTMLButtonElement>(
+      '.selection-limit-control button',
+    );
+    expect(limitButtons).toHaveLength(4);
+    limitButtons[2].click();
+    fixture.detectChanges();
+    expect(game.maxQuestSelections()).toBe(3);
+    expect(limitButtons[2].getAttribute('aria-pressed')).toBe('true');
+    click(fixture, '.settings-modal header > button');
+
+    reachFirstChoice(fixture);
+    const choices = page.querySelectorAll<HTMLButtonElement>('.quest-choice');
+    choices[0].click();
+    choices[2].click();
+    choices[3].click();
+    fixture.detectChanges();
+
+    expect(game.selectedOptions()).toEqual([0, 2, 3]);
+    expect(page.querySelectorAll('.quest-choice.is-selected')).toHaveLength(3);
+    expect(choices[1].disabled).toBe(true);
+    expect(page.querySelector('.choice-confirm-bar')?.textContent).toContain('3 / 3 已選擇');
+    click(fixture, '.confirm-quest-choice');
+
+    expect(game.choices()['code-workshop']).toEqual([0, 2, 3]);
+    expect(page.querySelectorAll('.result-direction')).toHaveLength(3);
+    expect(page.querySelector('.result-story h1')?.textContent).toContain('3 條探索路線');
+    expect(game.acquiredSkills()).toEqual(
+      expect.arrayContaining([
+        ...game.regions.find((region) => region.id === 'code-workshop')!.options[0].rewards,
+        ...game.regions.find((region) => region.id === 'code-workshop')!.options[2].rewards,
+        ...game.regions.find((region) => region.id === 'code-workshop')!.options[3].rewards,
+      ]),
+    );
   });
 
   it('should preview every unacquired codex card in a muted state only when hints are on', async () => {
@@ -381,7 +432,7 @@ describe('App', () => {
     const game = TestBed.inject(GameStateService);
     game.acquiredSkills.set(['digital-tools', 'workflow']);
     game.completedRegions.set(['prompt-academy', 'code-workshop', 'data-archive']);
-    game.choices.set({ 'code-workshop': 0, 'data-archive': 0 });
+    game.choices.set({ 'code-workshop': [0], 'data-archive': [0] });
     game.goToMap();
     fixture.detectChanges();
 
@@ -738,6 +789,8 @@ describe('App', () => {
     const game = TestBed.inject(GameStateService);
     expect(game.acquiredSkills()).toEqual(expect.arrayContaining(['digital-tools', 'workflow']));
     expect(game.acquiredSkills()).toContain('python');
+    expect(game.choices()['code-workshop']).toEqual([0]);
+    expect(game.maxQuestSelections()).toBe(1);
     expect(game.unlockedCareers().map((career) => career.id)).toContain('model-engineer');
 
     game.acquiredSkills.set(['machine-learning', 'model-training']);
@@ -750,11 +803,11 @@ describe('App', () => {
 
     game.acquiredSkills.set(['machine-learning', 'model-validation', 'python']);
     expect(game.unlockedCareers().map((career) => career.id)).toContain('model-engineer');
-    expect(game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value).toBe(9);
+    expect(game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value).toBe(6);
 
     game.acquiredSkills.set(['machine-learning', 'model-training', 'python']);
     expect(game.unlockedCareers().map((career) => career.id)).toContain('model-engineer');
-    expect(game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value).toBe(8);
+    expect(game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value).toBe(6);
   });
 
   it('should require completing a matching specialty before awakening a career', () => {
@@ -900,6 +953,11 @@ describe('App', () => {
   it('should calculate the eight-axis profile from collected skill cards', () => {
     const game = TestBed.inject(GameStateService);
     expect(game.skills.every((skill) => game.skillStatBonuses(skill.id).length > 0)).toBe(true);
+    expect(
+      game.skills
+        .flatMap((skill) => game.skillStatBonuses(skill.id))
+        .every((bonus) => bonus.points >= 1 && bonus.points <= 3),
+    ).toBe(true);
     game.acquiredSkills.set(['rag', 'multiomics', 'statistics']);
 
     const scores = Object.fromEntries(
@@ -910,6 +968,39 @@ describe('App', () => {
     expect(scores['data']).toBe(3);
     expect(scores['math']).toBe(4);
     expect(scores['research']).toBe(2);
+  });
+
+  it('should derive each profile maximum from the available score rounded down to five', () => {
+    const game = TestBed.inject(GameStateService);
+    game.acquiredSkills.set(game.skills.map((skill) => skill.id));
+
+    const scores = Object.fromEntries(game.skillProfileScores().map((stat) => [stat.id, stat]));
+    expect(
+      Object.fromEntries(game.skillProfileScores().map((stat) => [stat.id, stat.maxValue])),
+    ).toEqual({
+      programming: 15,
+      math: 10,
+      data: 35,
+      'machine-learning': 20,
+      'generative-ai': 10,
+      engineering: 30,
+      medical: 60,
+      research: 50,
+    });
+    expect(Object.values(scores).every((stat) => stat.value === stat.maxValue)).toBe(true);
+  });
+
+  it('should let an all-options route reach the full math and statistics score', () => {
+    const game = TestBed.inject(GameStateService);
+    const allRewardSkills = [
+      ...new Set(
+        game.regions.flatMap((region) => region.options.flatMap((option) => option.rewards)),
+      ),
+    ];
+
+    game.acquiredSkills.set(allRewardSkills);
+
+    expect(game.skillProfileScores().find((stat) => stat.id === 'math')?.value).toBe(10);
   });
 
   it('should present all awakened classes and collected cards on the adventure profile', async () => {

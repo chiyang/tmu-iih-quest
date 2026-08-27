@@ -13,6 +13,24 @@
       </div>
       <button type="button" (click)="game.closeSettings()" aria-label="關閉設定">×</button>
     </header>
+    <div class="setting-row selection-limit-row">
+      <div>
+        <strong>每題最多選擇幾項</strong>
+        <p>預設為 1，保留原本的單一路線；調高後可組合多個想探索的方向，並取得各方向需要的技能。</p>
+      </div>
+      <div class="selection-limit-control" role="group" aria-label="每題選擇數量上限">
+        @for (limit of selectionLimits; track limit) {
+          <button
+            type="button"
+            [class.is-active]="game.maxQuestSelections() === limit"
+            [attr.aria-pressed]="game.maxQuestSelections() === limit"
+            (click)="game.setMaxQuestSelections(limit)"
+          >
+            {{ limit }}
+          </button>
+        }
+      </div>
+    </div>
     <div class="setting-row">
       <div>
         <strong>預覽技能獎勵</strong>

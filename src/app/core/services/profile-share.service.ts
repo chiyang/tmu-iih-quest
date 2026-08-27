@@ -128,10 +128,10 @@ export class ProfileShareService {
       context.fillStyle = '#8d97ad';
       context.fillRect(x, y + 22, 430, 14);
       context.fillStyle = stat.accent;
-      context.fillRect(x, y + 22, 430 * (stat.value / 10), 14);
+      context.fillRect(x, y + 22, 430 * (stat.value / stat.maxValue), 14);
       context.fillStyle = '#ffffff';
       context.font = '700 22px Georgia, serif';
-      context.fillText(String(stat.value), x + 448, y + 35);
+      context.fillText(`${stat.value} / ${stat.maxValue}`, x + 448, y + 35);
     });
 
     if (profile.careers.length > 1) this.drawOtherCareers(context, profile, 1160);

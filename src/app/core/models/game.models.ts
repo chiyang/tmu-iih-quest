@@ -28,6 +28,7 @@ export interface SkillStatBonus {
 
 export interface PlayerStatScore extends StatAxis {
   readonly value: number;
+  readonly maxValue: number;
 }
 
 export interface SkillBranch {
@@ -73,6 +74,8 @@ export interface QuestOption {
   readonly rewards: readonly string[];
 }
 
+export type QuestChoices = Readonly<Record<string, readonly number[]>>;
+
 export interface WorldRegion {
   readonly id: string;
   readonly chapter: string;
@@ -112,7 +115,7 @@ export interface RoundSnapshot {
   readonly regionId: string;
   readonly acquiredSkills: readonly string[];
   readonly completedRegions: readonly string[];
-  readonly choices: Readonly<Record<string, number>>;
+  readonly choices: QuestChoices;
   readonly selectedTrack: string | null;
 }
 
@@ -120,8 +123,9 @@ export interface SavedGameState {
   readonly view: GameView;
   readonly acquiredSkills: readonly string[];
   readonly completedRegions: readonly string[];
-  readonly choices: Readonly<Record<string, number>>;
+  readonly choices: QuestChoices;
   readonly selectedTrack: string | null;
   readonly previewRewards: boolean;
+  readonly maxQuestSelections: number;
   readonly lastRound: RoundSnapshot | null;
 }

@@ -72,15 +72,17 @@
       @if (game.lastRound(); as previousRound) {
         <article class="last-choice-card">
           <p class="panel-kicker">LAST CHOICE・上一局</p>
-          @if (game.chosenOptionFor(previousRound.regionId); as previousChoice) {
-            <div class="choice-summary">
-              <i>{{ previousChoice.icon }}</i
-              ><span
-                ><small>{{ previousChoice.direction }}</small
-                ><strong>{{ previousChoice.label }}</strong></span
-              >
-            </div>
-          }
+          <div class="choice-summary-list">
+            @for (previousChoice of game.chosenOptionsFor(previousRound.regionId); track $index) {
+              <div class="choice-summary">
+                <i>{{ previousChoice.icon }}</i
+                ><span
+                  ><small>{{ previousChoice.direction }}</small
+                  ><strong>{{ previousChoice.label }}</strong></span
+                >
+              </div>
+            }
+          </div>
           <p>最新一局仍可返回重選；撤回後不能繼續回到更早的關卡。</p>
           <button class="undo-button" type="button" (click)="game.undoLastRound()">
             ↶ 返回上一局重選

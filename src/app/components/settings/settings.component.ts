@@ -8,4 +8,5 @@ import { GameStateService } from '../../core/services/game-state.service';
 })
 export class SettingsComponent {
   readonly game = inject(GameStateService);
+  readonly selectionLimits = [1, 2, 3, 4] as const;
 }

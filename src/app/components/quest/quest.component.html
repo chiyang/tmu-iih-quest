@@ -68,15 +68,32 @@
                   <p class="speaker-name">{{ questGiver.speaker }}</p>
                   <small class="speaker-role">{{ questGiver.role }}</small>
                   <p class="quest-question">{{ region.question }}</p>
-                  <p class="choice-guidance">不需要先知道正確答案，選擇你最想了解的方向。</p>
+                  <p class="choice-guidance">
+                    不需要先知道正確答案；本題最多可選
+                    <strong>{{ game.questSelectionLimit() }}</strong>
+                    項，選好後再統一確認。
+                  </p>
                 </article>
                 <div class="choice-grid" [class.has-four-options]="region.options.length === 4">
                   @for (option of region.options; track option.label; let index = $index) {
                     <button
                       class="quest-choice"
                       type="button"
-                      (click)="game.chooseQuestOption(index)"
+                      [class.is-selected]="game.isQuestOptionSelected(index)"
+                      [class.is-at-limit]="
+                        game.questSelectionLimit() > 1 &&
+                        game.questSelectionIsFull() &&
+                        !game.isQuestOptionSelected(index)
+                      "
+                      [disabled]="
+                        game.questSelectionLimit() > 1 &&
+                        game.questSelectionIsFull() &&
+                        !game.isQuestOptionSelected(index)
+                      "
+                      [attr.aria-pressed]="game.isQuestOptionSelected(index)"
+                      (click)="game.toggleQuestOption(index)"
                     >
+                      <span class="choice-selected-mark" aria-hidden="true">✓</span>
                       <span class="choice-letter">{{ choiceLetters[index] }}</span
                       ><i>{{ option.icon }}</i
                       ><small>{{ option.direction }}</small
@@ -94,9 +111,28 @@
                           <em>選擇後揭曉技能</em>
                         }
                       </div>
-                      <b>採取這個行動 <span>➜</span></b>
                     </button>
                   }
+                </div>
+                <div class="choice-confirm-bar" aria-live="polite">
+                  <span>
+                    <strong>{{ game.selectedOptions().length }}</strong> /
+                    {{ game.questSelectionLimit() }} 已選擇
+                    @if (game.questSelectionIsFull() && game.questSelectionLimit() > 1) {
+                      <small>已達上限；可取消任一項後重選</small>
+                    } @else {
+                      <small>再次點選已選項目即可取消</small>
+                    }
+                  </span>
+                  <button
+                    class="primary-cta confirm-quest-choice"
+                    type="button"
+                    [disabled]="game.selectedOptions().length === 0"
+                    (click)="game.confirmQuestOptions()"
+                  >
+                    {{ game.questSelectionLimit() === 1 ? '確認這個方向' : '確認所選方向' }}
+                    <span>➜</span>
+                  </button>
                 </div>
               </section>
             </div>
@@ -112,17 +148,37 @@
               <small>ORIGINAL QUEST・最初的委託</small>
               <p>{{ region.question }}</p>
             </div>
-            <span class="result-direction"
-              ><i>{{ result.icon }}</i
-              >探索方向・{{ result.direction }}</span
-            >
-            <h1>{{ result.label }}</h1>
-            <p>{{ result.consequence }}</p>
+            <div class="result-direction-list">
+              @for (selectedResult of game.selectedQuestOptions(); track $index) {
+                <span class="result-direction"
+                  ><i>{{ selectedResult.icon }}</i
+                  >探索方向・{{ selectedResult.direction }}</span
+                >
+              }
+            </div>
+            <h1 [class.is-multiple]="game.selectedQuestOptions().length > 1">
+              {{ game.resultTitle() }}
+            </h1>
+            @if (game.selectedQuestOptions().length === 1) {
+              <p>{{ result.consequence }}</p>
+            } @else {
+              <div class="result-consequence-list">
+                @for (selectedResult of game.selectedQuestOptions(); track $index) {
+                  <article>
+                    <i>{{ selectedResult.icon }}</i>
+                    <span
+                      ><strong>{{ selectedResult.label }}</strong>
+                      <p>{{ selectedResult.consequence }}</p></span
+                    >
+                  </article>
+                }
+              </div>
+            }
             <div class="learning-summary">
               <small>LEARNING PATH・這條路需要的技能</small>
               <strong>為了讓這個想像成為可行的智慧醫療方案，你努力學習了：</strong>
               <div>
-                @for (skillId of result.rewards; track skillId) {
+                @for (skillId of game.resultRewardSkillIds(); track skillId) {
                   @if (game.skillById(skillId); as skill) {
                     @if (game.branchForSkill(skillId); as branch) {
                       <span [style.--skill-accent]="branch.accent"

@@ -140,15 +140,19 @@
                   ><strong>{{ stat.name }}</strong
                   ><small>{{ stat.shortName }}</small></span
                 >
-                <b>{{ stat.value }}</b>
+                <b
+                  >{{ stat.value }}<small>/ {{ stat.maxValue }}</small></b
+                >
               </div>
-              <span class="profile-stat-track"><i [style.width.%]="stat.value * 10"></i></span>
+              <span class="profile-stat-track"
+                ><i [style.width.%]="(stat.value / stat.maxValue) * 100"></i
+              ></span>
               <p>{{ stat.description }}</p>
             </div>
           }
         </div>
         <p class="profile-disclaimer">
-          分數由已取得技能卡累積，只用來回顧這次冒險偏向，不代表真實能力高低。
+          分數由已取得技能卡累積；斜線後為該領域滿分，只用來回顧這次冒險偏向，不代表真實能力高低。
         </p>
       </article>
     </section>

@@ -13,6 +13,8 @@ import {
   Capability,
   CareerProfile,
   GameView,
+  QuestChoices,
+  QuestOption,
   RoundSnapshot,
   SavedGameState,
   SkillBranch,
@@ -43,16 +45,17 @@ export class GameStateService {
   readonly view = signal<GameView>('intro');
   readonly acquiredSkills = signal<readonly string[]>([]);
   readonly completedRegions = signal<readonly string[]>(['prompt-academy']);
-  readonly choices = signal<Readonly<Record<string, number>>>({});
+  readonly choices = signal<QuestChoices>({});
   readonly activeRegionId = signal<string | null>(null);
   readonly questPhase = signal<'dialogue' | 'choice' | 'result'>('dialogue');
   readonly dialogueIndex = signal(0);
-  readonly selectedOption = signal<number | null>(null);
+  readonly selectedOptions = signal<readonly number[]>([]);
   readonly newlyUnlockedCapabilities = signal<readonly string[]>([]);
   readonly selectedTrack = signal<string | null>(null);
   readonly activeCareerId = signal<string | null>(null);
   readonly lastRound = signal<RoundSnapshot | null>(null);
   readonly previewRewards = signal(false);
+  readonly maxQuestSelections = signal(1);
   readonly collectionOpen = signal(false);
   readonly settingsOpen = signal(false);
   readonly shareStatus = signal<string | null>(null);
@@ -65,11 +68,20 @@ export class GameStateService {
     const region = this.activeRegion();
     return region?.dialogue[this.dialogueIndex()] ?? null;
   });
-  readonly selectedQuestOption = computed(() => {
+  readonly selectedQuestOptions = computed<readonly QuestOption[]>(() => {
     const region = this.activeRegion();
-    const index = this.selectedOption();
-    return region && index !== null ? (region.options[index] ?? null) : null;
+    if (!region) return [];
+    return this.selectedOptions()
+      .map((index) => region.options[index])
+      .filter((option): option is QuestOption => Boolean(option));
   });
+  readonly selectedQuestOption = computed(() => this.selectedQuestOptions()[0] ?? null);
+  readonly questSelectionLimit = computed(() =>
+    Math.min(this.maxQuestSelections(), this.activeRegion()?.options.length ?? 1),
+  );
+  readonly resultRewardSkillIds = computed<readonly string[]>(() => [
+    ...new Set(this.selectedQuestOptions().flatMap((option) => option.rewards)),
+  ]);
   readonly acquiredSkillSet = computed(() => new Set(this.acquiredSkills()));
   readonly completedRegionSet = computed(() => new Set(this.completedRegions()));
   readonly unlockedCapabilities = computed(() =>
@@ -92,20 +104,31 @@ export class GameStateService {
     );
   });
   readonly skillProfileScores = computed(() =>
-    this.statAxes.map((axis) => ({
-      ...axis,
-      value: Math.min(
-        10,
-        this.acquiredSkills().reduce(
-          (total, skillId) =>
-            total +
-            this.skillStatBonuses(skillId)
-              .filter((bonus) => bonus.axis === axis.id)
-              .reduce((sum, bonus) => sum + bonus.points, 0),
-          0,
-        ),
-      ),
-    })),
+    this.statAxes.map((axis) => {
+      const availablePoints = this.skills.reduce(
+        (total, skill) =>
+          total +
+          this.skillStatBonuses(skill.id)
+            .filter((bonus) => bonus.axis === axis.id)
+            .reduce((sum, bonus) => sum + bonus.points, 0),
+        0,
+      );
+      const maxValue = Math.floor(availablePoints / 5) * 5;
+      const collectedPoints = this.acquiredSkills().reduce(
+        (total, skillId) =>
+          total +
+          this.skillStatBonuses(skillId)
+            .filter((bonus) => bonus.axis === axis.id)
+            .reduce((sum, bonus) => sum + bonus.points, 0),
+        0,
+      );
+
+      return {
+        ...axis,
+        value: Math.min(maxValue, collectedPoints),
+        maxValue,
+      };
+    }),
   );
   readonly playerLevel = computed(() => Math.max(1, this.completedRegions().length));
   readonly hasSpecialization = computed(() =>
@@ -176,6 +199,7 @@ export class GameStateService {
         choices: this.choices(),
         selectedTrack: this.selectedTrack(),
         previewRewards: this.previewRewards(),
+        maxQuestSelections: this.maxQuestSelections(),
         lastRound: this.lastRound(),
       };
       localStorage.setItem(this.storageKey, JSON.stringify(state));
@@ -224,6 +248,12 @@ export class GameStateService {
     this.previewRewards.update((value) => !value);
   }
 
+  setMaxQuestSelections(value: number): void {
+    const nextLimit = Math.min(4, Math.max(1, Math.round(value)));
+    this.maxQuestSelections.set(nextLimit);
+    this.selectedOptions.update((selected) => selected.slice(0, nextLimit));
+  }
+
   openRegion(region: WorldRegion): void {
     if (this.regionStatus(region) === 'locked') return;
     if (region.kind === 'start') {
@@ -241,9 +271,9 @@ export class GameStateService {
     }
 
     this.activeRegionId.set(region.id);
-    const savedChoice = this.choices()[region.id];
-    this.selectedOption.set(typeof savedChoice === 'number' ? savedChoice : null);
-    this.questPhase.set(typeof savedChoice === 'number' ? 'result' : 'dialogue');
+    const savedChoices = this.choices()[region.id] ?? [];
+    this.selectedOptions.set(savedChoices);
+    this.questPhase.set(savedChoices.length ? 'result' : 'dialogue');
     this.dialogueIndex.set(0);
     this.newlyUnlockedCapabilities.set([]);
     if (region.kind === 'specialization' || region.kind === 'enterprise-contract') {
@@ -268,10 +298,43 @@ export class GameStateService {
     this.questPhase.set('choice');
   }
 
-  chooseQuestOption(index: number): void {
+  toggleQuestOption(index: number): void {
     const region = this.activeRegion();
     const option = region?.options[index];
     if (!region || !option || this.completedRegions().includes(region.id)) return;
+
+    this.selectedOptions.update((selected) => {
+      if (selected.includes(index)) return selected.filter((choice) => choice !== index);
+      if (this.questSelectionLimit() === 1) return [index];
+      if (selected.length >= this.questSelectionLimit()) return selected;
+      return [...selected, index];
+    });
+  }
+
+  isQuestOptionSelected(index: number): boolean {
+    return this.selectedOptions().includes(index);
+  }
+
+  questSelectionIsFull(): boolean {
+    return this.selectedOptions().length >= this.questSelectionLimit();
+  }
+
+  confirmQuestOptions(): void {
+    this.completeQuestOptions(this.selectedOptions());
+  }
+
+  chooseQuestOption(index: number): void {
+    this.completeQuestOptions([index]);
+  }
+
+  private completeQuestOptions(indices: readonly number[]): void {
+    const region = this.activeRegion();
+    if (!region || this.completedRegions().includes(region.id)) return;
+    const selectedIndices = [...new Set(indices)]
+      .filter((index) => Number.isInteger(index) && Boolean(region.options[index]))
+      .slice(0, this.questSelectionLimit());
+    const selectedOptions = selectedIndices.map((index) => region.options[index]);
+    if (!selectedOptions.length) return;
 
     const snapshot: RoundSnapshot = {
       regionId: region.id,
@@ -283,7 +346,8 @@ export class GameStateService {
     const capabilitiesBefore = new Set(
       this.unlockedCapabilities().map((capability) => capability.id),
     );
-    const nextSkills = [...new Set([...this.acquiredSkills(), ...option.rewards])];
+    const rewards = selectedOptions.flatMap((option) => option.rewards);
+    const nextSkills = [...new Set([...this.acquiredSkills(), ...rewards])];
     const nextSkillSet = new Set(nextSkills);
     const newCapabilities = this.capabilities
       .filter(
@@ -296,10 +360,10 @@ export class GameStateService {
     this.lastRound.set(snapshot);
     this.acquiredSkills.set(nextSkills);
     this.completedRegions.update((completed) => [...new Set([...completed, region.id])]);
-    this.choices.update((choices) => ({ ...choices, [region.id]: index }));
+    this.choices.update((choices) => ({ ...choices, [region.id]: selectedIndices }));
     if (region.kind === 'specialization' || region.kind === 'enterprise-contract')
       this.selectedTrack.set(region.id);
-    this.selectedOption.set(index);
+    this.selectedOptions.set(selectedIndices);
     this.newlyUnlockedCapabilities.set(newCapabilities);
     this.questPhase.set('result');
     this.scrollToTop();
@@ -330,7 +394,7 @@ export class GameStateService {
     this.selectedTrack.set(snapshot.selectedTrack);
     this.activeCareerId.set(null);
     this.activeRegionId.set(snapshot.regionId);
-    this.selectedOption.set(null);
+    this.selectedOptions.set([]);
     this.newlyUnlockedCapabilities.set([]);
     this.dialogueIndex.set(0);
     this.lastRound.set(null);
@@ -368,7 +432,7 @@ export class GameStateService {
     this.completedRegions.set(['prompt-academy']);
     this.choices.set({});
     this.activeRegionId.set(null);
-    this.selectedOption.set(null);
+    this.selectedOptions.set([]);
     this.selectedTrack.set(null);
     this.activeCareerId.set(null);
     this.lastRound.set(null);
@@ -474,17 +538,27 @@ export class GameStateService {
   canUndoRegion(regionId: string): boolean {
     return this.lastRound()?.regionId === regionId;
   }
-  chosenOptionFor(regionId: string) {
+  chosenOptionsFor(regionId: string): readonly QuestOption[] {
     const region = this.regions.find((item) => item.id === regionId);
-    const index = this.choices()[regionId];
-    return region && typeof index === 'number' ? (region.options[index] ?? null) : null;
+    if (!region) return [];
+    return (this.choices()[regionId] ?? [])
+      .map((index) => region.options[index])
+      .filter((option): option is QuestOption => Boolean(option));
+  }
+  chosenOptionFor(regionId: string): QuestOption | null {
+    return this.chosenOptionsFor(regionId)[0] ?? null;
+  }
+  resultTitle(): string {
+    const results = this.selectedQuestOptions();
+    if (results.length === 1) return results[0].label;
+    return `${results.length} 條探索路線在此匯流`;
   }
   resultSkillIds(): readonly string[] {
-    const rewards = this.selectedQuestOption()?.rewards ?? [];
+    const rewards = this.resultRewardSkillIds();
     return [...rewards, ...this.acquiredSkills().filter((skillId) => !rewards.includes(skillId))];
   }
   isResultSkillReward(skillId: string): boolean {
-    return this.selectedQuestOption()?.rewards.includes(skillId) ?? false;
+    return this.resultRewardSkillIds().includes(skillId);
   }
   isResultSkillNew(skillId: string): boolean {
     if (!this.isResultSkillReward(skillId)) return false;
@@ -595,8 +669,7 @@ export class GameStateService {
             : []),
         ]),
       ];
-      const restoredChoices =
-        state.choices && typeof state.choices === 'object' ? state.choices : {};
+      const restoredChoices = this.normalizeChoices(state.choices);
       this.completedRegions.set(restoredCompletedRegions);
       this.choices.set(restoredChoices);
       this.acquiredSkills.set(
@@ -612,15 +685,20 @@ export class GameStateService {
       )
         this.selectedTrack.set(state.selectedTrack);
       if (typeof state.previewRewards === 'boolean') this.previewRewards.set(state.previewRewards);
-      if (state.lastRound && validRegions.has(state.lastRound.regionId))
+      if (typeof state.maxQuestSelections === 'number')
+        this.setMaxQuestSelections(state.maxQuestSelections);
+      if (state.lastRound && validRegions.has(state.lastRound.regionId)) {
+        const restoredRoundChoices = this.normalizeChoices(state.lastRound.choices);
         this.lastRound.set({
           ...state.lastRound,
           acquiredSkills: this.restoreRewardSkills(
             state.lastRound.acquiredSkills,
             state.lastRound.completedRegions,
-            state.lastRound.choices,
+            restoredRoundChoices,
           ),
+          choices: restoredRoundChoices,
         });
+      }
       if (
         state.view === 'career' ||
         state.view === 'enterprise' ||
@@ -636,20 +714,44 @@ export class GameStateService {
   private restoreRewardSkills(
     skillIds: readonly string[],
     completedRegionIds: readonly string[],
-    choices: Readonly<Record<string, number>>,
+    choices: QuestChoices,
   ): readonly string[] {
     const validSkills = new Set(this.skills.map((skill) => skill.id));
     const restoredSkills = new Set(skillIds.filter((id) => validSkills.has(id)));
     const completedRegions = new Set(completedRegionIds);
     for (const region of this.regions) {
       if (!completedRegions.has(region.id)) continue;
-      const optionIndex = choices[region.id];
-      if (!Number.isInteger(optionIndex)) continue;
-      for (const reward of region.options[optionIndex]?.rewards ?? []) {
-        if (validSkills.has(reward)) restoredSkills.add(reward);
+      for (const optionIndex of choices[region.id] ?? []) {
+        for (const reward of region.options[optionIndex]?.rewards ?? []) {
+          if (validSkills.has(reward)) restoredSkills.add(reward);
+        }
       }
     }
     return [...restoredSkills];
+  }
+
+  private normalizeChoices(value: unknown): QuestChoices {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    const rawChoices = value as Readonly<Record<string, unknown>>;
+    const normalized: Record<string, readonly number[]> = {};
+    for (const region of this.regions) {
+      const rawChoice = rawChoices[region.id];
+      const candidates = Array.isArray(rawChoice)
+        ? rawChoice
+        : typeof rawChoice === 'number'
+          ? [rawChoice]
+          : [];
+      const validIndices = [
+        ...new Set(
+          candidates.filter(
+            (index): index is number =>
+              Number.isInteger(index) && index >= 0 && index < region.options.length,
+          ),
+        ),
+      ];
+      if (validIndices.length) normalized[region.id] = validIndices;
+    }
+    return normalized;
   }
 
   private scrollToTop(): void {

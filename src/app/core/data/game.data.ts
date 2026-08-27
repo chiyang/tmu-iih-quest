@@ -190,8 +190,8 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
     { axis: 'research', points: 1 },
   ],
   'machine-learning': [
-    { axis: 'machine-learning', points: 5 },
-    { axis: 'math', points: 1 },
+    { axis: 'machine-learning', points: 3 },
+    { axis: 'math', points: 2 },
     { axis: 'data', points: 1 },
   ],
   'model-training': [
@@ -200,7 +200,8 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
   ],
   'model-validation': [
     { axis: 'research', points: 3 },
-    { axis: 'machine-learning', points: 4 },
+    { axis: 'machine-learning', points: 3 },
+    { axis: 'math', points: 2 },
     { axis: 'medical', points: 1 },
   ],
   'ai-ethics': [
@@ -305,6 +306,7 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
     { axis: 'data', points: 2 },
     { axis: 'medical', points: 2 },
     { axis: 'research', points: 2 },
+    { axis: 'math', points: 1 },
   ],
   multiomics: [
     { axis: 'data', points: 2 },
@@ -348,7 +350,7 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
   ],
   'smart-medtech-prototype': [
     { axis: 'engineering', points: 3 },
-    { axis: 'programming', points: 1 },
+    { axis: 'programming', points: 2 },
     { axis: 'medical', points: 1 },
   ],
   'implementation-collaboration': [
