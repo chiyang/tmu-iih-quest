@@ -1115,6 +1115,18 @@ describe('App', () => {
     expect(page.querySelectorAll('.profile-skill-grid .profile-skill-card')).toHaveLength(7);
     expect(page.querySelectorAll('.profile-skill-grid .profile-skill-card > img')).toHaveLength(7);
     expect(page.querySelectorAll('.profile-stat-row')).toHaveLength(8);
+    expect(page.querySelectorAll('.profile-capability-card')).toHaveLength(2);
+    expect(page.querySelector('.profile-capability-collection')?.textContent).toContain(
+      '知識召喚陣',
+    );
+    expect(page.querySelector('.profile-capability-collection')?.textContent).toContain(
+      '食養安全守望結界',
+    );
+    expect(
+      Array.from(
+        page.querySelectorAll('.profile-skill-collection, .profile-capability-collection'),
+      ).map((section) => section.className),
+    ).toEqual(['profile-skill-collection', 'profile-capability-collection']);
     expect(page.textContent).toContain('你在這趟冒險中，覺醒了以下專精職業');
     expect(page.textContent).toContain('冒險途中收集了 7 張技能卡');
     expect(page.textContent).not.toContain('北醫相關學系');
@@ -1130,9 +1142,13 @@ describe('App', () => {
     const scrollTo = vi.mocked(window.scrollTo);
     scrollTo.mockClear();
     const careerCards = page.querySelectorAll<HTMLButtonElement>('.career-gallery .career-card');
+    const selectedCareerDetail = page.querySelector<HTMLElement>('#selected-career-detail')!;
+    const scrollIntoView = vi.fn();
+    selectedCareerDetail.scrollIntoView = scrollIntoView;
     careerCards[2].click();
     fixture.detectChanges();
     expect(scrollTo).not.toHaveBeenCalled();
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     expect(careerCards[2].getAttribute('aria-pressed')).toBe('true');
     expect(page.querySelector('.share-primary-reminder')?.textContent).toContain(
       '分享主職業：食品營養安全守護者',

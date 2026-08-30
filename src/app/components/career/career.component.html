@@ -26,7 +26,8 @@
           下載履歷圖 <span>↓</span>
         </button>
         <span class="profile-total"
-          >{{ game.unlockedCareers().length }} 職階 ・ {{ game.acquiredSkills().length }} 技能</span
+          >{{ game.unlockedCareers().length }} 職階 ・ {{ game.unlockedCapabilities().length }} 能力
+          ・ {{ game.acquiredSkills().length }} 技能</span
         >
       </div>
       <p class="share-primary-reminder">
@@ -57,7 +58,7 @@
             type="button"
             [class.is-active]="career.id === profile.id"
             [attr.aria-pressed]="career.id === profile.id"
-            (click)="game.showCareer(profile.regionId, profile.id)"
+            (click)="selectCareer(profile.regionId, profile.id)"
           >
             <img [src]="profile.image" [alt]="profile.className + '職業角色'" />
             <span class="career-card-shade" aria-hidden="true"></span>
@@ -80,7 +81,7 @@
     </section>
 
     <section class="profile-dashboard">
-      <article class="career-detail-card">
+      <article id="selected-career-detail" class="career-detail-card">
         <div class="career-detail-heading">
           <span
             ><small>SELECTED CLASS</small><strong>{{ career.className }}</strong></span
@@ -186,6 +187,36 @@
           }
         }
       </div>
+    </section>
+
+    <section class="profile-capability-collection">
+      <div class="profile-section-heading">
+        <div>
+          <p class="panel-kicker">UNLOCKED ABILITIES・技能組合解鎖能力</p>
+          <h2>這趟冒險已解鎖 {{ game.unlockedCapabilities().length }} 種能力</h2>
+        </div>
+        <p>能力來自多張技能卡的組合，代表你已看見這些 AI 方法可以如何共同解決問題。</p>
+      </div>
+      @if (game.unlockedCapabilities().length) {
+        <div class="profile-capability-grid">
+          @for (
+            capability of game.unlockedCapabilities();
+            track capability.id;
+            let index = $index
+          ) {
+            <article class="profile-capability-card">
+              <span class="profile-capability-sigil" aria-hidden="true">✦</span>
+              <div>
+                <small>ABILITY {{ (index + 1).toString().padStart(2, '0') }}</small>
+                <strong>{{ capability.name }}</strong>
+                <p>{{ capability.description }}</p>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="profile-capability-empty">再組合不同技能卡，就會在這裡看見新的解鎖能力。</p>
+      }
     </section>
 
     <footer class="profile-footer">
