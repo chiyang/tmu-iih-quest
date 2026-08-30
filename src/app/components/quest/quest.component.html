@@ -198,11 +198,15 @@
               <span>✦</span>
               <div>
                 <small>YOUR SKILL HAND・冒險者手牌</small
-                ><strong>新技能已置頂，也保留你之前取得的卡片</strong>
+                ><strong>新技能已置頂；技能較多時可在卡片區內捲動</strong>
               </div>
               <b>{{ game.acquiredSkills().length }} SKILLS</b>
             </header>
-            <div class="result-skill-hand" aria-label="本關結算後的技能手牌">
+            <div
+              class="result-skill-hand"
+              tabindex="0"
+              aria-label="本關結算後的技能手牌，技能較多時可上下捲動"
+            >
               @for (skillId of game.resultSkillIds(); track skillId) {
                 @if (game.skillById(skillId); as skill) {
                   @if (game.branchForSkill(skillId); as branch) {

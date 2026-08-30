@@ -1053,41 +1053,8 @@ button:focus-visible {
 .last-choice-card {
   padding: 18px;
 }
-.choice-summary-list {
-  display: grid;
-  gap: 8px;
-  margin: 13px 0;
-}
-.choice-summary {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0;
-  padding: 12px;
-  border: 1px solid rgba(169, 135, 255, 0.28);
-  border-radius: 7px;
-  background: rgba(64, 46, 112, 0.21);
-}
-.choice-summary > i {
-  width: 40px;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--violet);
-  background: rgba(169, 135, 255, 0.11);
-  font-size: 19px;
-  font-style: normal;
-}
-.choice-summary span {
-  display: grid;
-}
-.choice-summary small {
-  color: var(--violet);
-  font-size: 11px;
-}
-.choice-summary strong {
-  font-size: 14px;
+.last-choice-card.is-undo-only {
+  padding: 10px;
 }
 .last-choice-card > p:not(.panel-kicker) {
   color: #8f98af;
@@ -1140,6 +1107,7 @@ button:focus-visible {
 }
 .ability-items {
   display: grid;
+  height: 270px;
   max-height: 270px;
   overflow: auto;
 }
@@ -1166,6 +1134,15 @@ button:focus-visible {
 }
 .ability-items .is-latest {
   color: var(--cyan);
+}
+.ability-empty {
+  align-self: center;
+  margin: 0;
+  padding: 22px;
+  color: #778198;
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: center;
 }
 .ability-log > button {
   width: 100%;
@@ -2027,7 +2004,7 @@ button:focus-visible {
 .result-scene {
   display: grid;
   grid-template-columns: minmax(280px, 0.72fr) minmax(520px, 1.28fr);
-  align-items: center;
+  align-items: start;
   gap: clamp(32px, 5vw, 80px);
 }
 .result-scene > * {
@@ -2233,12 +2210,22 @@ button:focus-visible {
 .result-skill-hand {
   width: 100%;
   max-width: 100%;
+  max-height: 620px;
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-content: start;
   gap: 12px;
   margin-top: 16px;
-  padding: 3px;
+  padding: 3px 8px 3px 3px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(104, 231, 236, 0.42) rgba(172, 195, 238, 0.08);
+  scrollbar-width: thin;
+}
+.result-skill-hand:focus-visible {
+  outline: 2px solid rgba(104, 231, 236, 0.72);
+  outline-offset: 4px;
 }
 .reward-card {
   position: relative;

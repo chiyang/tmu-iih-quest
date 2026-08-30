@@ -69,21 +69,8 @@
         </div>
         <b>{{ game.acquiredSkills().length }}<small> SKILLS</small></b>
       </article>
-      @if (game.lastRound(); as previousRound) {
-        <article class="last-choice-card">
-          <p class="panel-kicker">LAST CHOICE・上一局</p>
-          <div class="choice-summary-list">
-            @for (previousChoice of game.chosenOptionsFor(previousRound.regionId); track $index) {
-              <div class="choice-summary">
-                <i>{{ previousChoice.icon }}</i
-                ><span
-                  ><small>{{ previousChoice.direction }}</small
-                  ><strong>{{ previousChoice.label }}</strong></span
-                >
-              </div>
-            }
-          </div>
-          <p>最新一局仍可返回重選；撤回後不能繼續回到更早的關卡。</p>
+      @if (game.lastRound()) {
+        <article class="last-choice-card is-undo-only">
           <button class="undo-button" type="button" (click)="game.undoLastRound()">
             ↶ 返回上一局重選
           </button>
@@ -101,14 +88,22 @@
           ><b>{{ game.unlockedCapabilities().length }}</b>
         </div>
         <div class="ability-items">
-          @for (capability of game.unlockedCapabilities(); track capability.id; let last = $last) {
-            <div [class.is-latest]="last">
-              <i>✦</i
-              ><span
-                ><strong>{{ capability.name }}</strong
-                ><small>{{ capability.description }}</small></span
-              >
-            </div>
+          @if (game.unlockedCapabilities().length) {
+            @for (
+              capability of game.unlockedCapabilities();
+              track capability.id;
+              let last = $last
+            ) {
+              <div [class.is-latest]="last">
+                <i>✦</i
+                ><span
+                  ><strong>{{ capability.name }}</strong
+                  ><small>{{ capability.description }}</small></span
+                >
+              </div>
+            }
+          } @else {
+            <p class="ability-empty">完成任務並組合技能卡，就會在這裡點亮新能力。</p>
           }
         </div>
         <button type="button" (click)="game.openCollection()">

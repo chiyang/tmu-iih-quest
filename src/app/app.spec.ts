@@ -47,6 +47,39 @@ describe('App', () => {
     expect(fixture.nativeElement.querySelector('app-intro')).toBeTruthy();
   });
 
+  it('should reserve the map ability panel before any ability is unlocked', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const game = TestBed.inject(GameStateService);
+    game.goToMap();
+    fixture.detectChanges();
+    const page = fixture.nativeElement as HTMLElement;
+
+    expect(game.unlockedCapabilities()).toHaveLength(0);
+    expect(page.querySelector('.ability-items')).toBeTruthy();
+    expect(page.querySelector('.ability-empty')?.textContent).toContain('組合技能卡');
+  });
+
+  it('should keep the previous-round panel as a single undo action', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const game = TestBed.inject(GameStateService);
+    game.lastRound.set({
+      regionId: 'code-workshop',
+      acquiredSkills: [],
+      completedRegions: ['prompt-academy'],
+      choices: {},
+      selectedTrack: null,
+    });
+    game.goToMap();
+    fixture.detectChanges();
+    const panel = (fixture.nativeElement as HTMLElement).querySelector('.is-undo-only')!;
+
+    expect(panel.querySelectorAll('button')).toHaveLength(1);
+    expect(panel.textContent).toContain('返回上一局重選');
+    expect(panel.querySelector('.choice-summary-list')).toBeNull();
+  });
+
   it('should preload scenes and NPCs before career images while the browser is idle', () => {
     type TestIdleDeadline = { didTimeout: boolean; timeRemaining: () => number };
     const idleCallbacks: Array<(deadline: TestIdleDeadline) => void> = [];
@@ -210,6 +243,8 @@ describe('App', () => {
     );
     expect(page.querySelectorAll('.result-skill-hand .reward-card')).toHaveLength(3);
     expect(page.querySelectorAll('.result-skill-hand .reward-card.is-new')).toHaveLength(3);
+    expect(page.querySelector('.result-skill-hand')?.getAttribute('tabindex')).toBe('0');
+    expect(page.querySelector('.reward-reveal > header')?.textContent).toContain('卡片區內捲動');
     expect(page.querySelector('.return-map-primary')?.textContent).toContain('返回大地圖');
     expect(page.querySelector('.undo-button')).toBeTruthy();
     expect(page.querySelector('.rebirth-button')).toBeTruthy();
