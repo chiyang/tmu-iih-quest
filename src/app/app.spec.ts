@@ -591,7 +591,11 @@ describe('App', () => {
       'food-nutrition-watchtower',
     ];
     game.completedRegions.set(completed);
-    game.acquiredSkills.set(['food-nutrition-literacy', 'food-evidence-validation']);
+    game.acquiredSkills.set([
+      'food-nutrition-literacy',
+      'food-evidence-validation',
+      'nutrition-data',
+    ]);
     game.lastRound.set({
       regionId: 'food-nutrition-watchtower',
       acquiredSkills: ['food-nutrition-literacy'],
@@ -606,12 +610,25 @@ describe('App', () => {
 
   it('should define eleven visual RPG classes without exposing audience departments', () => {
     const game = TestBed.inject(GameStateService);
+    const skillIds = new Set(game.skills.map((skill) => skill.id));
+    const careerRecipes = game.careers.flatMap((career) => [
+      career.requiresSkills,
+      ...(career.alternateSkillRecipes ?? []),
+    ]);
 
     expect(game.careers).toHaveLength(11);
     expect(
       game.careers.every(
         (career) =>
           career.id && career.image.startsWith('assets/careers/') && career.requiresSkills.length,
+      ),
+    ).toBe(true);
+    expect(
+      careerRecipes.every(
+        (recipe) =>
+          recipe.length >= 2 &&
+          new Set(recipe).size === recipe.length &&
+          recipe.every((skillId) => skillIds.has(skillId)),
       ),
     ).toBe(true);
     expect(game.careers.some((career) => 'departments' in career)).toBe(false);
@@ -810,6 +827,77 @@ describe('App', () => {
     expect(game.skillProfileScores().find((stat) => stat.id === 'machine-learning')?.value).toBe(6);
   });
 
+  it('should align audited skill bonuses and the clinical decision career recipe', () => {
+    const game = TestBed.inject(GameStateService);
+    const pointsFor = (skillId: string, axis: string) =>
+      game.skillStatBonuses(skillId).find((bonus) => bonus.axis === axis)?.points ?? 0;
+
+    expect(pointsFor('image-labeling', 'research')).toBe(1);
+    expect(pointsFor('pose-action-analysis', 'research')).toBe(1);
+    expect(pointsFor('biosignal-ai', 'data')).toBe(1);
+    expect(pointsFor('model-validation', 'math')).toBe(1);
+    expect(pointsFor('model-validation', 'engineering')).toBe(1);
+    expect(pointsFor('clinical-nlp', 'generative-ai')).toBe(3);
+    expect(pointsFor('molecular-targeting', 'math')).toBe(1);
+    expect(pointsFor('drug-discovery', 'data')).toBe(1);
+    expect(pointsFor('product-outcome-validation', 'engineering')).toBe(2);
+    expect(pointsFor('product-outcome-validation', 'data')).toBe(1);
+    expect(pointsFor('dietary-surveillance', 'data')).toBe(1);
+
+    game.completedRegions.set(['vision-observatory']);
+    game.acquiredSkills.set(['biomedical-data', 'medical-safety', 'decision-communication']);
+    expect(game.unlockedCareers().map((career) => career.id)).not.toContain('clinical-swordsman');
+    game.acquiredSkills.set([
+      'biomedical-data',
+      'model-validation',
+      'validation-code',
+      'medical-safety',
+      'decision-communication',
+      'python',
+    ]);
+    expect(game.unlockedCareers().map((career) => career.id)).toContain('clinical-swordsman');
+  });
+
+  it('should awaken audited careers from every matching quest direction', () => {
+    const game = TestBed.inject(GameStateService);
+    const expectEveryDirectionToAwaken = (
+      careerId: string,
+      regionId: string,
+      optionIndexes: readonly number[],
+      priorSkills: readonly string[] = [],
+    ) => {
+      const region = game.regions.find((candidate) => candidate.id === regionId)!;
+
+      for (const optionIndex of optionIndexes) {
+        const option = region.options[optionIndex];
+        game.completedRegions.set([regionId]);
+        game.acquiredSkills.set([...new Set([...priorSkills, ...option.rewards])]);
+        expect(
+          game.unlockedCareers().map((career) => career.id),
+          `${region.name}「${option.label}」應可覺醒 ${careerId}`,
+        ).toContain(careerId);
+      }
+    };
+
+    expectEveryDirectionToAwaken(
+      'clinical-swordsman',
+      'vision-observatory',
+      [3],
+      ['biomedical-data'],
+    );
+    expectEveryDirectionToAwaken('safety-guardian', 'food-nutrition-watchtower', [0, 1, 2, 3]);
+    expectEveryDirectionToAwaken(
+      'health-product-alchemist',
+      'product-alchemy-commission',
+      [0, 1, 2, 3],
+    );
+    expectEveryDirectionToAwaken(
+      'alliance-strategist',
+      'alliance-deployment-commission',
+      [0, 1, 2],
+    );
+  });
+
   it('should require completing a matching specialty before awakening a career', () => {
     const game = TestBed.inject(GameStateService);
     game.acquiredSkills.set(['rag', 'knowledge-design']);
@@ -941,6 +1029,7 @@ describe('App', () => {
       'experience-design',
       'food-nutrition-literacy',
       'food-evidence-validation',
+      'nutrition-data',
     ]);
 
     expect(game.unlockedCareers().map((career) => career.className)).toEqual([
@@ -1014,6 +1103,7 @@ describe('App', () => {
       'experience-design',
       'food-nutrition-literacy',
       'food-evidence-validation',
+      'nutrition-data',
     ]);
     game.completedRegions.set(['language-library', 'food-nutrition-watchtower']);
     game.showCareer('language-library');
@@ -1022,11 +1112,11 @@ describe('App', () => {
 
     expect(page.querySelectorAll('.career-gallery .career-card')).toHaveLength(3);
     expect(page.querySelectorAll('.profile-domain-card')).toHaveLength(0);
-    expect(page.querySelectorAll('.profile-skill-grid .profile-skill-card')).toHaveLength(6);
-    expect(page.querySelectorAll('.profile-skill-grid .profile-skill-card > img')).toHaveLength(6);
+    expect(page.querySelectorAll('.profile-skill-grid .profile-skill-card')).toHaveLength(7);
+    expect(page.querySelectorAll('.profile-skill-grid .profile-skill-card > img')).toHaveLength(7);
     expect(page.querySelectorAll('.profile-stat-row')).toHaveLength(8);
     expect(page.textContent).toContain('你在這趟冒險中，覺醒了以下專精職業');
-    expect(page.textContent).toContain('冒險途中收集了 6 張技能卡');
+    expect(page.textContent).toContain('冒險途中收集了 7 張技能卡');
     expect(page.textContent).not.toContain('北醫相關學系');
     expect(page.querySelector('.share-profile-button')?.textContent).toContain('分享履歷圖');
     expect(page.querySelector('.profile-actions .download-profile-button')?.textContent).toContain(
@@ -1100,7 +1190,11 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const game = TestBed.inject(GameStateService);
-    game.acquiredSkills.set(['food-nutrition-literacy', 'food-evidence-validation']);
+    game.acquiredSkills.set([
+      'food-nutrition-literacy',
+      'food-evidence-validation',
+      'nutrition-data',
+    ]);
     game.completedRegions.set(['food-nutrition-watchtower']);
     game.showCareer('food-nutrition-watchtower');
     fixture.detectChanges();

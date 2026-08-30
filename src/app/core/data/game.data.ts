@@ -128,7 +128,7 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
     { axis: 'generative-ai', points: 1 },
   ],
   'clinical-nlp': [
-    { axis: 'generative-ai', points: 2 },
+    { axis: 'generative-ai', points: 3 },
     { axis: 'data', points: 1 },
     { axis: 'medical', points: 1 },
   ],
@@ -201,7 +201,8 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
   'model-validation': [
     { axis: 'research', points: 3 },
     { axis: 'machine-learning', points: 3 },
-    { axis: 'math', points: 2 },
+    { axis: 'math', points: 1 },
+    { axis: 'engineering', points: 1 },
     { axis: 'medical', points: 1 },
   ],
   'ai-ethics': [
@@ -225,11 +226,13 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
   'biosignal-ai': [
     { axis: 'machine-learning', points: 2 },
     { axis: 'math', points: 1 },
+    { axis: 'data', points: 1 },
     { axis: 'medical', points: 1 },
   ],
   'image-labeling': [
     { axis: 'data', points: 2 },
     { axis: 'medical', points: 1 },
+    { axis: 'research', points: 1 },
   ],
   'vision-prototype': [
     { axis: 'engineering', points: 2 },
@@ -239,6 +242,7 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
     { axis: 'machine-learning', points: 2 },
     { axis: 'data', points: 1 },
     { axis: 'medical', points: 1 },
+    { axis: 'research', points: 1 },
   ],
   'multisensor-care': [
     { axis: 'engineering', points: 2 },
@@ -297,6 +301,7 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
   'dietary-surveillance': [
     { axis: 'medical', points: 2 },
     { axis: 'research', points: 2 },
+    { axis: 'data', points: 1 },
   ],
   'food-evidence-validation': [
     { axis: 'research', points: 3 },
@@ -322,11 +327,13 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
     { axis: 'medical', points: 2 },
     { axis: 'research', points: 2 },
     { axis: 'machine-learning', points: 1 },
+    { axis: 'data', points: 1 },
   ],
   'molecular-targeting': [
     { axis: 'medical', points: 2 },
     { axis: 'research', points: 2 },
     { axis: 'machine-learning', points: 2 },
+    { axis: 'math', points: 1 },
   ],
   'precision-medicine': [
     { axis: 'medical', points: 3 },
@@ -346,7 +353,8 @@ export const SKILL_STAT_BONUSES: Readonly<Record<string, readonly SkillStatBonus
   'product-outcome-validation': [
     { axis: 'research', points: 3 },
     { axis: 'medical', points: 1 },
-    { axis: 'engineering', points: 1 },
+    { axis: 'engineering', points: 2 },
+    { axis: 'data', points: 1 },
   ],
   'smart-medtech-prototype': [
     { axis: 'engineering', points: 3 },
@@ -1755,7 +1763,14 @@ export const CAREERS: readonly CareerProfile[] = [
     image: 'assets/careers/clinical-swordsman.jpg',
     description:
       '你把病人資料、臨床指引、治療風險與病人偏好帶回同一張決策地圖，協助照護團隊比較下一步。巨劍斬開的是資訊混亂，不是替專業人員或病人自動下決定。',
-    requiresSkills: ['medical-safety', 'decision-communication'],
+    requiresSkills: [
+      'biomedical-data',
+      'model-validation',
+      'validation-code',
+      'medical-safety',
+      'decision-communication',
+      'python',
+    ],
     formula: ['病人資料', '臨床證據', '共同決策'],
     careers: ['臨床決策支援設計人才', '醫學資訊研究員', '醫療品質與病安人才'],
     research: ['臨床決策支援', '實證醫學', '共享決策', '診斷與用藥安全'],
@@ -1848,7 +1863,17 @@ export const CAREERS: readonly CareerProfile[] = [
     image: 'assets/careers/safety-guardian.jpg',
     description:
       '你串起食品來源、檢驗、冷鏈、營養成分與族群飲食資料，讓危害與不平等更早被看見。守護者會要求可靠證據與專業覆核，不讓 AI 警報直接變成食安結論或個人飲食處方。',
-    requiresSkills: ['food-nutrition-literacy', 'food-evidence-validation'],
+    requiresSkills: [
+      'food-nutrition-literacy',
+      'food-evidence-validation',
+      'food-safety-ai',
+      'python',
+    ],
+    alternateSkillRecipes: [
+      ['food-nutrition-literacy', 'food-evidence-validation', 'nutrition-data'],
+      ['food-nutrition-literacy', 'food-evidence-validation', 'dietary-surveillance'],
+      ['food-nutrition-literacy', 'food-evidence-validation', 'microbiome-analysis'],
+    ],
     formula: ['食品風險', '營養資料', '證據驗證'],
     careers: ['食品安全資料人才', '營養資料分析人才', '公共衛生監測研究助理'],
     research: ['食品危害與追溯', '食品質譜檢驗', '營養與菌相', '可信任食養 AI'],
@@ -1863,7 +1888,28 @@ export const CAREERS: readonly CareerProfile[] = [
     image: 'assets/careers/health-product-alchemist.png',
     description:
       '你將健康 AI 研究鍊成人能夠理解、操作與信任的產品。鍊金術師的工作不只是做 App：也可能連結感測器、智慧醫材、輔助診斷工具與照護服務，再用安全、可用性與真實成效檢查它是否值得被使用。',
-    requiresSkills: ['health-product-strategy', 'product-outcome-validation'],
+    requiresSkills: [
+      'health-product-strategy',
+      'product-outcome-validation',
+      'experience-design',
+      'clinical-context',
+    ],
+    alternateSkillRecipes: [
+      [
+        'health-product-strategy',
+        'product-outcome-validation',
+        'smart-medtech-prototype',
+        'python',
+      ],
+      ['health-product-strategy', 'product-outcome-validation', 'user-research'],
+      [
+        'health-product-strategy',
+        'product-outcome-validation',
+        'python',
+        'workflow',
+        'agent-workflow',
+      ],
+    ],
     formula: ['醫療需求', '軟硬體原型', '安全與成效驗證'],
     careers: ['智慧醫療產品經理', '數位健康產品設計師', '智慧醫材研發與產品專案人才'],
     research: [
@@ -1883,7 +1929,21 @@ export const CAREERS: readonly CareerProfile[] = [
     image: 'assets/careers/alliance-strategist.png',
     description:
       '你讓醫療、工程、產品、營運、法規與使用者共同看見同一張導入地圖。軍師不替每個專業下指令，而是翻譯疑問、安排可撤回的試行，並把證據、責任與持續學習放進團隊的共同路線。',
-    requiresSkills: ['implementation-collaboration', 'stakeholder-facilitation'],
+    requiresSkills: [
+      'implementation-collaboration',
+      'stakeholder-facilitation',
+      'domain-translation',
+    ],
+    alternateSkillRecipes: [
+      [
+        'implementation-collaboration',
+        'stakeholder-facilitation',
+        'model-validation',
+        'workflow',
+        'agent-workflow',
+      ],
+      ['implementation-collaboration', 'stakeholder-facilitation', 'privacy-governance'],
+    ],
     formula: ['共同語言', '導入協作', '證據與治理'],
     careers: ['智慧醫療專案經理', '醫療資訊導入顧問', '產學合作與創新管理人才'],
     research: ['實作科學與導入策略', '組織變革與使用者採納', '跨域共創', '負責任 AI 治理'],
