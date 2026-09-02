@@ -105,6 +105,10 @@ export interface CareerProfile {
   readonly requiresSkills: readonly string[];
   readonly alternateSkillRecipes?: readonly (readonly string[])[];
   readonly alternateRegionIds?: readonly string[];
+  readonly crossRegionRecipes?: readonly {
+    readonly regionId: string;
+    readonly requiresSkills: readonly string[];
+  }[];
   readonly formula: readonly string[];
   readonly careers: readonly string[];
   readonly research: readonly string[];

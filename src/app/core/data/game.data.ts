@@ -1771,6 +1771,28 @@ export const CAREERS: readonly CareerProfile[] = [
       'decision-communication',
       'python',
     ],
+    crossRegionRecipes: [
+      {
+        regionId: 'language-library',
+        requiresSkills: [
+          'biomedical-data',
+          'clinical-nlp',
+          'privacy-governance',
+          'decision-communication',
+          'ai-ethics',
+        ],
+      },
+      {
+        regionId: 'medical-observatory',
+        requiresSkills: [
+          'biomedical-data',
+          'precision-medicine',
+          'model-validation',
+          'decision-communication',
+          'ai-ethics',
+        ],
+      },
+    ],
     formula: ['病人資料', '臨床證據', '共同決策'],
     careers: ['臨床決策支援設計人才', '醫學資訊研究員', '醫療品質與病安人才'],
     research: ['臨床決策支援', '實證醫學', '共享決策', '診斷與用藥安全'],
@@ -1803,7 +1825,16 @@ export const CAREERS: readonly CareerProfile[] = [
       '你以長者、家屬與照顧者的生活為中心，運用衛教、感測資料與溝通工具提供支持。補師的力量來自關係與持續照護，而非一次性的預測。',
     requiresSkills: ['long-term-care', 'experience-design'],
     alternateSkillRecipes: [['long-term-care', 'multisensor-care']],
-    alternateRegionIds: ['vision-observatory'],
+    crossRegionRecipes: [
+      {
+        regionId: 'vision-observatory',
+        requiresSkills: ['pose-action-analysis', 'multisensor-care', 'long-term-care'],
+      },
+      {
+        regionId: 'food-nutrition-watchtower',
+        requiresSkills: ['long-term-care', 'food-nutrition-literacy', 'nutrition-data'],
+      },
+    ],
     formula: ['高齡健康', '照護溝通', '遠距支持'],
     careers: ['智慧長照產品人才', '高齡健康管理人才', '數位健康專案人員'],
     research: ['高齡健康促進', '居家與穿戴感測', '失智照護科技', '照顧者支持'],
@@ -1823,6 +1854,18 @@ export const CAREERS: readonly CareerProfile[] = [
       ['precision-medicine', 'model-validation', 'workflow', 'precision-stratification'],
       ['microbiome-analysis', 'multiomics', 'workflow', 'precision-stratification'],
       ['multiomics', 'statistics', 'model-validation', 'precision-medicine', 'workflow'],
+    ],
+    crossRegionRecipes: [
+      {
+        regionId: 'food-nutrition-watchtower',
+        requiresSkills: [
+          'food-nutrition-literacy',
+          'microbiome-analysis',
+          'multiomics',
+          'statistics',
+          'workflow',
+        ],
+      },
     ],
     formula: ['多體學與菌相', '分析流程', '療效驗證'],
     careers: ['生物資訊工程師', '精準醫療資料科學家', '計算生物研究助理'],

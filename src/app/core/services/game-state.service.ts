@@ -638,15 +638,19 @@ export class GameStateService {
     skillSet: ReadonlySet<string>,
     completedRegions: ReadonlySet<string>,
   ): boolean {
-    if (
-      ![career.regionId, ...(career.alternateRegionIds ?? [])].some((regionId) =>
+    const standardPathMet =
+      [career.regionId, ...(career.alternateRegionIds ?? [])].some((regionId) =>
         completedRegions.has(regionId),
-      )
-    )
-      return false;
-    return [career.requiresSkills, ...(career.alternateSkillRecipes ?? [])].some((recipe) =>
-      recipe.every((skillId) => skillSet.has(skillId)),
+      ) &&
+      [career.requiresSkills, ...(career.alternateSkillRecipes ?? [])].some((recipe) =>
+        recipe.every((skillId) => skillSet.has(skillId)),
+      );
+    const crossRegionPathMet = (career.crossRegionRecipes ?? []).some(
+      (recipe) =>
+        completedRegions.has(recipe.regionId) &&
+        recipe.requiresSkills.every((skillId) => skillSet.has(skillId)),
     );
+    return standardPathMet || crossRegionPathMet;
   }
 
   private closeOverlays(): void {

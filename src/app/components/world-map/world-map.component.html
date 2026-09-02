@@ -33,7 +33,7 @@
           type="button"
           [class.is-completed]="game.regionStatus(region) === 'completed'"
           [class.is-open]="game.regionStatus(region) === 'open'"
-          [class.is-recommended]="game.isRecommendedRegion(region)"
+          [class.is-recommended]="game.isRecommendedRegion(region) || (region.kind === 'enterprise-hub' && game.regionStatus(region) === 'open')"
           [class.is-locked]="game.regionStatus(region) === 'locked'"
           [class.is-start]="region.kind === 'start'"
           [class.is-specialization]="region.kind === 'specialization'"

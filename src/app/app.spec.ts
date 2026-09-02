@@ -643,12 +643,38 @@ describe('App', () => {
     expect(game.regionStatusLabel(careerGate!)).toBe('前往職業覺醒');
   });
 
+  it('should also show the animated route prompt on the unlocked enterprise hub', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const game = TestBed.inject(GameStateService);
+    game.completedRegions.set([
+      'prompt-academy',
+      'code-workshop',
+      'data-archive',
+      'ml-forest',
+      'food-nutrition-watchtower',
+    ]);
+    game.acquiredSkills.set([
+      'food-nutrition-literacy',
+      'food-evidence-validation',
+      'nutrition-data',
+    ]);
+    game.goToMap();
+    fixture.detectChanges();
+
+    expect(game.regionStatus(game.enterpriseHubRegion!)).toBe('open');
+    expect(
+      fixture.nativeElement.querySelector('.region-node.is-enterprise.is-recommended'),
+    ).toBeTruthy();
+  });
+
   it('should define eleven visual RPG classes without exposing audience departments', () => {
     const game = TestBed.inject(GameStateService);
     const skillIds = new Set(game.skills.map((skill) => skill.id));
     const careerRecipes = game.careers.flatMap((career) => [
       career.requiresSkills,
       ...(career.alternateSkillRecipes ?? []),
+      ...(career.crossRegionRecipes ?? []).map((recipe) => recipe.requiresSkills),
     ]);
 
     expect(game.careers).toHaveLength(11);
@@ -963,11 +989,19 @@ describe('App', () => {
         for (const path of mainPaths) {
           const skills = new Set([...path, ...option.rewards]);
           const matchingCareers = game.careers.filter(
-            (career) =>
-              [career.regionId, ...(career.alternateRegionIds ?? [])].includes(region.id) &&
-              [career.requiresSkills, ...(career.alternateSkillRecipes ?? [])].some((recipe) =>
-                recipe.every((skillId) => skills.has(skillId)),
-              ),
+            (career) => {
+              const standardPathMet =
+                [career.regionId, ...(career.alternateRegionIds ?? [])].includes(region.id) &&
+                [career.requiresSkills, ...(career.alternateSkillRecipes ?? [])].some((recipe) =>
+                  recipe.every((skillId) => skills.has(skillId)),
+                );
+              const crossRegionPathMet = (career.crossRegionRecipes ?? []).some(
+                (recipe) =>
+                  recipe.regionId === region.id &&
+                  recipe.requiresSkills.every((skillId) => skills.has(skillId)),
+              );
+              return standardPathMet || crossRegionPathMet;
+            },
           );
           expect(
             matchingCareers.length,
@@ -1072,6 +1106,86 @@ describe('App', () => {
       '長照健康補師',
       '食品營養安全守護者',
     ]);
+  });
+
+  it('should awaken precision medicine from a food microbiome route with prior multiomics foundations', () => {
+    const game = TestBed.inject(GameStateService);
+    game.completedRegions.set(['food-nutrition-watchtower']);
+    game.acquiredSkills.set([
+      'food-nutrition-literacy',
+      'food-evidence-validation',
+      'microbiome-analysis',
+      'multiomics',
+      'statistics',
+      'workflow',
+    ]);
+
+    expect(game.unlockedCareers().map((career) => career.id)).toEqual(
+      expect.arrayContaining(['precision-archer', 'safety-guardian']),
+    );
+  });
+
+  it('should not awaken precision medicine from food microbiome skills alone', () => {
+    const game = TestBed.inject(GameStateService);
+    game.completedRegions.set(['food-nutrition-watchtower']);
+    game.acquiredSkills.set([
+      'food-nutrition-literacy',
+      'food-evidence-validation',
+      'microbiome-analysis',
+    ]);
+
+    expect(game.unlockedCareers().map((career) => career.id)).toContain('safety-guardian');
+    expect(game.unlockedCareers().map((career) => career.id)).not.toContain('precision-archer');
+
+    game.acquiredSkills.set([
+      'long-term-care',
+      'multisensor-care',
+      'food-nutrition-literacy',
+      'food-evidence-validation',
+    ]);
+    expect(game.unlockedCareers().map((career) => career.id)).not.toContain('long-term-healer');
+  });
+
+  it('should support deliberate cross-domain career awakenings', () => {
+    const game = TestBed.inject(GameStateService);
+    const cases = [
+      {
+        regionId: 'food-nutrition-watchtower',
+        skills: ['long-term-care', 'food-nutrition-literacy', 'nutrition-data'],
+        careerId: 'long-term-healer',
+      },
+      {
+        regionId: 'language-library',
+        skills: [
+          'biomedical-data',
+          'clinical-nlp',
+          'privacy-governance',
+          'decision-communication',
+          'ai-ethics',
+        ],
+        careerId: 'clinical-swordsman',
+      },
+      {
+        regionId: 'medical-observatory',
+        skills: [
+          'biomedical-data',
+          'precision-medicine',
+          'model-validation',
+          'decision-communication',
+          'ai-ethics',
+        ],
+        careerId: 'clinical-swordsman',
+      },
+    ];
+
+    for (const crossDomainCase of cases) {
+      game.completedRegions.set([crossDomainCase.regionId]);
+      game.acquiredSkills.set(crossDomainCase.skills);
+      expect(
+        game.unlockedCareers().map((career) => career.id),
+        `${crossDomainCase.regionId} 應可跨域覺醒 ${crossDomainCase.careerId}`,
+      ).toContain(crossDomainCase.careerId);
+    }
   });
 
   it('should calculate the eight-axis profile from collected skill cards', () => {
@@ -1235,6 +1349,34 @@ describe('App', () => {
     service.download({ careers: [], skills: [], stats: [], level: 1 });
 
     expect(download).toHaveBeenCalledWith(file);
+  });
+
+  it('should frame the long-term care healer smaller and lower in the profile image', () => {
+    const service = TestBed.inject(ProfileShareService);
+    const card = document.createElement('div');
+    const image = document.createElement('img');
+    const drawImage = vi.fn();
+    card.className = 'career-card is-active';
+    image.src = 'assets/careers/long-term-healer.jpg';
+    Object.defineProperties(image, {
+      complete: { value: true },
+      naturalWidth: { value: 800 },
+      naturalHeight: { value: 1200 },
+    });
+    card.append(image);
+    document.body.append(card);
+
+    try {
+      (service as unknown as { drawPortrait: (context: CanvasRenderingContext2D) => void }).drawPortrait({ drawImage } as unknown as CanvasRenderingContext2D);
+      const [renderedImage, x, y, width, height] = drawImage.mock.calls[0];
+      expect(renderedImage).toBe(image);
+      expect(x).toBeCloseTo(48);
+      expect(y).toBeCloseTo(-124.2);
+      expect(width).toBeCloseTo(1104);
+      expect(height).toBeCloseTo(1656);
+    } finally {
+      card.remove();
+    }
   });
 
   it('should explain that no other-career section is needed for a single awakened class', async () => {

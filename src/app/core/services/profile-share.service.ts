@@ -204,6 +204,14 @@ export class ProfileShareService {
     if (!image?.complete || !image.naturalWidth) return;
     const targetWidth = 1200;
     const targetHeight = 610;
+    if (image.src.endsWith('/assets/careers/long-term-healer.jpg')) {
+      const scale = (targetWidth / image.naturalWidth) * 0.92;
+      const destinationWidth = image.naturalWidth * scale;
+      const destinationHeight = image.naturalHeight * scale;
+      const sourceTop = image.naturalHeight * 0.075;
+      context.drawImage(image, (targetWidth - destinationWidth) / 2, -sourceTop * scale, destinationWidth, destinationHeight);
+      return;
+    }
     const scale = Math.max(targetWidth / image.naturalWidth, targetHeight / image.naturalHeight);
     const sourceWidth = targetWidth / scale;
     const sourceHeight = targetHeight / scale;
